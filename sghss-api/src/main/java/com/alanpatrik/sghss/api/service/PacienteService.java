@@ -2,6 +2,7 @@ package com.alanpatrik.sghss.api.service;
 
 import com.alanpatrik.sghss.api.model.Endereco;
 import com.alanpatrik.sghss.api.model.Paciente;
+import com.alanpatrik.sghss.api.model.Prontuario;
 import com.alanpatrik.sghss.api.repository.PacienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,23 +39,25 @@ public class PacienteService {
             throw new Exception("Paciente já cadastrado!");
         }
 
-        var novoPaciente = new Paciente();
-        var endereco = new Endereco();
+        var endereco = Endereco.builder()
+                .logradouro(paciente.getEndereco().getLogradouro())
+                .numero(paciente.getEndereco().getNumero())
+                .complemento(paciente.getEndereco().getComplemento())
+                .bairro(paciente.getEndereco().getBairro())
+                .cidade(paciente.getEndereco().getCidade())
+                .estado(paciente.getEndereco().getEstado())
+                .cep(paciente.getEndereco().getCep())
+                .build();
 
-        endereco.setLogradouro(paciente.getEndereco().getLogradouro());
-        endereco.setNumero(paciente.getEndereco().getNumero());
-        endereco.setComplemento(paciente.getEndereco().getComplemento());
-        endereco.setBairro(paciente.getEndereco().getBairro());
-        endereco.setCidade(paciente.getEndereco().getCidade());
-        endereco.setEstado(paciente.getEndereco().getEstado());
-        endereco.setCep(paciente.getEndereco().getCep());
-
-        novoPaciente.setNome(paciente.getNome());
-        novoPaciente.setCpf(paciente.getCpf());
-        novoPaciente.setDataNascimento(paciente.getDataNascimento());
-        novoPaciente.setTelefone(paciente.getTelefone());
-        novoPaciente.setEmail(paciente.getEmail());
-        novoPaciente.setEndereco(endereco);
+        var novoPaciente = new Paciente(
+            paciente.getNome(),
+            paciente.getCpf(),
+            paciente.getDataNascimento(),
+            paciente.getTelefone(),
+            paciente.getEmail(),
+            endereco,
+            paciente.getHistoricoClinico()
+        );
 
         pacienteRepository.save(novoPaciente);
         return novoPaciente;
@@ -66,15 +69,15 @@ public class PacienteService {
         }
 
         var pacienteAtualizado = pacienteRepository.findById(id).get();
-        var endereco = new Endereco();
-
-        endereco.setLogradouro(paciente.getEndereco().getLogradouro());
-        endereco.setNumero(paciente.getEndereco().getNumero());
-        endereco.setComplemento(paciente.getEndereco().getComplemento());
-        endereco.setBairro(paciente.getEndereco().getBairro());
-        endereco.setCidade(paciente.getEndereco().getCidade());
-        endereco.setEstado(paciente.getEndereco().getEstado());
-        endereco.setCep(paciente.getEndereco().getCep());
+        var endereco = Endereco.builder()
+                .logradouro(paciente.getEndereco().getLogradouro())
+                .numero(paciente.getEndereco().getNumero())
+                .complemento(paciente.getEndereco().getComplemento())
+                .bairro(paciente.getEndereco().getBairro())
+                .cidade(paciente.getEndereco().getCidade())
+                .estado(paciente.getEndereco().getEstado())
+                .cep(paciente.getEndereco().getCep())
+                .build();
 
         pacienteAtualizado.setNome(paciente.getNome());
         pacienteAtualizado.setCpf(paciente.getCpf());

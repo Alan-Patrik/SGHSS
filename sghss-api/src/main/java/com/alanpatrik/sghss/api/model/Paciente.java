@@ -40,12 +40,12 @@ public class Paciente extends Pessoa {
 //    public Consulta cancelarConsulta() {
 //
 //    }
-
-    public List<Prontuario> visualizarHistorico() {
-        return historicoClinico;
-    }
-
-    public void acessarTeleconsulta() {
-
-    }
+//
+//    public List<Prontuario> visualizarHistorico() {
+//        return this.historicoClinico;
+//    }
+//
+//    public void acessarTeleconsulta() {
+//
+//    }
 }
