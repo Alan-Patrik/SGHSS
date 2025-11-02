@@ -42,7 +42,6 @@ public class Prontuario {
     public static ProntuarioDTO toDTO(Prontuario prontuario) {
         var prontuarioDTO = new ProntuarioDTO();
         prontuarioDTO.setId(prontuario.getId());
-        prontuarioDTO.setDataCriacao(prontuario.getDataModificacao());
         prontuarioDTO.setDataModificacao(prontuario.getDataModificacao());
         prontuarioDTO.setObservacao(prontuario.getObservacao());
         prontuarioDTO.setNomePaciente(prontuario.getPaciente().getNome());
