@@ -1,7 +1,9 @@
 package com.alanpatrik.sghss.api.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -16,9 +18,8 @@ public class Paciente extends Pessoa {
     @Column(name = "ID_PACIENTE", nullable = false)
     private Long id;
 
-    @OneToMany
-    @JoinColumn(name = "ID_PRONTUARIO", nullable = true)
-    private List<Prontuario> historicoClinico;
+    @OneToMany(mappedBy = "paciente", fetch = FetchType.LAZY)
+    private List<Prontuario> prontuarios;
 
     public Paciente(
             String nome,
@@ -26,11 +27,9 @@ public class Paciente extends Pessoa {
             String dataNascimento,
             String telefone,
             String email,
-            Endereco endereco,
-            List<Prontuario> historicoClinico
+            Endereco endereco
     ) {
         super(nome, cpf, dataNascimento, telefone, email, endereco);
-        this.historicoClinico = historicoClinico;
     }
 
 //    public Consulta agendarConsulta(Consulta consulta) {
@@ -39,10 +38,6 @@ public class Paciente extends Pessoa {
 //
 //    public Consulta cancelarConsulta() {
 //
-//    }
-//
-//    public List<Prontuario> visualizarHistorico() {
-//        return this.historicoClinico;
 //    }
 //
 //    public void acessarTeleconsulta() {

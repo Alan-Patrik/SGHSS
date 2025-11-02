@@ -1,6 +1,8 @@
 package com.alanpatrik.sghss.api.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Table;
 import lombok.*;
 
 @Builder

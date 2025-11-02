@@ -2,7 +2,6 @@ package com.alanpatrik.sghss.api.service;
 
 import com.alanpatrik.sghss.api.model.Endereco;
 import com.alanpatrik.sghss.api.model.Paciente;
-import com.alanpatrik.sghss.api.model.Prontuario;
 import com.alanpatrik.sghss.api.repository.PacienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,11 +25,15 @@ public class PacienteService {
         return pacienteRepository.findById(id).get();
     }
 
-    public boolean verifyIfExistsById(Long id) throws Exception {
+    public Paciente findByHistoricoClinico(Long id) {
+        return pacienteRepository.findByHistoricoClinico(id);
+    }
+
+    private boolean verifyIfExistsById(Long id) {
         return pacienteRepository.existsById(id);
     }
 
-    public boolean verifyIfExistsByName(String nome) throws Exception {
+    private boolean verifyIfExistsByName(String nome) {
         return pacienteRepository.existsPacienteByNome((nome));
     }
 
@@ -49,17 +52,17 @@ public class PacienteService {
                 .cep(paciente.getEndereco().getCep())
                 .build();
 
+
         var novoPaciente = new Paciente(
-            paciente.getNome(),
-            paciente.getCpf(),
-            paciente.getDataNascimento(),
-            paciente.getTelefone(),
-            paciente.getEmail(),
-            endereco,
-            paciente.getHistoricoClinico()
+                paciente.getNome(),
+                paciente.getCpf(),
+                paciente.getDataNascimento(),
+                paciente.getTelefone(),
+                paciente.getEmail(),
+                endereco
         );
 
-        pacienteRepository.save(novoPaciente);
+        novoPaciente = pacienteRepository.save(novoPaciente);
         return novoPaciente;
     }
 

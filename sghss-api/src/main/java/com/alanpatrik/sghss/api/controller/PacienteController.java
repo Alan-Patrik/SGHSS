@@ -20,8 +20,13 @@ public class PacienteController {
     }
     
     @GetMapping("/{id}")
-    public Paciente getPacienteById(@PathVariable Long id) throws Exception {
+    public Paciente getById(@PathVariable Long id) throws Exception {
         return pacienteService.findById(id);
+    }
+
+    @GetMapping("/{id}/historico-clinico")
+    public Paciente getHistoricoClinicoById(@PathVariable Long id) {
+        return pacienteService.findByHistoricoClinico(id);
     }
 
     @PostMapping
@@ -31,7 +36,6 @@ public class PacienteController {
 
     @PutMapping("/{id}")
     public Paciente update(@PathVariable Long id, @RequestBody Paciente paciente) throws Exception {
-        paciente.setId(id);
         return pacienteService.update(id, paciente);
     }
 
