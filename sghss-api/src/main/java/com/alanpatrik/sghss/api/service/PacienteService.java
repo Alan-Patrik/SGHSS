@@ -1,5 +1,6 @@
 package com.alanpatrik.sghss.api.service;
 
+import com.alanpatrik.sghss.api.dto.PacienteDTO;
 import com.alanpatrik.sghss.api.model.Endereco;
 import com.alanpatrik.sghss.api.model.Paciente;
 import com.alanpatrik.sghss.api.repository.PacienteRepository;
@@ -14,19 +15,22 @@ public class PacienteService {
     @Autowired
     private PacienteRepository pacienteRepository;
 
-    public List<Paciente> findAll() {
-        return pacienteRepository.findAll();
+    public List<PacienteDTO> findAll() {
+        return pacienteRepository.findAll().stream()
+                .map(Paciente::toDTO)
+                .toList();
+
     }
 
-    public Paciente findById(Long id) throws Exception {
+    public PacienteDTO findById(Long id) throws Exception {
         if (!verifyIfExistsById(id)) {
             throw new Exception("Paciente não cadastrado!");
         }
-        return pacienteRepository.findById(id).get();
+        return Paciente.toDTO(pacienteRepository.findById(id).get());
     }
 
-    public Paciente findByHistoricoClinico(Long id) {
-        return pacienteRepository.findByHistoricoClinico(id);
+    public PacienteDTO findByHistoricoClinico(Long id) {
+        return Paciente.toDTO(pacienteRepository.findByHistoricoClinico(id));
     }
 
     private boolean verifyIfExistsById(Long id) {
@@ -37,60 +41,65 @@ public class PacienteService {
         return pacienteRepository.existsPacienteByNome((nome));
     }
 
-    public Paciente save(Paciente paciente) throws Exception {
-        if (verifyIfExistsByName(paciente.getNome())) {
+    public PacienteDTO findByName(String nome) {
+        return Paciente.toDTO(pacienteRepository.findByNome((nome)));
+    }
+
+    public PacienteDTO save(PacienteDTO pacienteDTO) throws Exception {
+        if (verifyIfExistsByName(pacienteDTO.getNome())) {
             throw new Exception("Paciente já cadastrado!");
         }
 
         var endereco = Endereco.builder()
-                .logradouro(paciente.getEndereco().getLogradouro())
-                .numero(paciente.getEndereco().getNumero())
-                .complemento(paciente.getEndereco().getComplemento())
-                .bairro(paciente.getEndereco().getBairro())
-                .cidade(paciente.getEndereco().getCidade())
-                .estado(paciente.getEndereco().getEstado())
-                .cep(paciente.getEndereco().getCep())
+                .logradouro(pacienteDTO.getEndereco().getLogradouro())
+                .numero(pacienteDTO.getEndereco().getNumero())
+                .complemento(pacienteDTO.getEndereco().getComplemento())
+                .bairro(pacienteDTO.getEndereco().getBairro())
+                .cidade(pacienteDTO.getEndereco().getCidade())
+                .estado(pacienteDTO.getEndereco().getEstado())
+                .cep(pacienteDTO.getEndereco().getCep())
                 .build();
 
 
-        var novoPaciente = new Paciente(
-                paciente.getNome(),
-                paciente.getCpf(),
-                paciente.getDataNascimento(),
-                paciente.getTelefone(),
-                paciente.getEmail(),
+        var paciente = new Paciente(
+                pacienteDTO.getNome(),
+                pacienteDTO.getCpf(),
+                pacienteDTO.getDataNascimento(),
+                pacienteDTO.getTelefone(),
+                pacienteDTO.getEmail(),
                 endereco
         );
 
-        novoPaciente = pacienteRepository.save(novoPaciente);
-        return novoPaciente;
+        paciente = pacienteRepository.save(paciente);
+        return Paciente.toDTO(paciente);
     }
 
-    public Paciente update(Long id, Paciente paciente) throws Exception {
+    public PacienteDTO update(Long id, PacienteDTO pacienteDTO) throws Exception {
         if (!verifyIfExistsById(id)) {
             throw new Exception("Paciente não cadastrado!");
         }
 
-        var pacienteAtualizado = pacienteRepository.findById(id).get();
+        var paciente = pacienteRepository.findById(id).get();
+        var enderecoPaciente = pacienteDTO.getEndereco();
         var endereco = Endereco.builder()
-                .logradouro(paciente.getEndereco().getLogradouro())
-                .numero(paciente.getEndereco().getNumero())
-                .complemento(paciente.getEndereco().getComplemento())
-                .bairro(paciente.getEndereco().getBairro())
-                .cidade(paciente.getEndereco().getCidade())
-                .estado(paciente.getEndereco().getEstado())
-                .cep(paciente.getEndereco().getCep())
+                .logradouro(enderecoPaciente.getLogradouro())
+                .numero(enderecoPaciente.getNumero())
+                .complemento(enderecoPaciente.getComplemento())
+                .bairro(enderecoPaciente.getBairro())
+                .cidade(enderecoPaciente.getCidade())
+                .estado(enderecoPaciente.getEstado())
+                .cep(enderecoPaciente.getCep())
                 .build();
 
-        pacienteAtualizado.setNome(paciente.getNome());
-        pacienteAtualizado.setCpf(paciente.getCpf());
-        pacienteAtualizado.setDataNascimento(paciente.getDataNascimento());
-        pacienteAtualizado.setTelefone(paciente.getTelefone());
-        pacienteAtualizado.setEmail(paciente.getEmail());
-        pacienteAtualizado.setEndereco(endereco);
+        paciente.setNome(pacienteDTO.getNome());
+        paciente.setCpf(pacienteDTO.getCpf());
+        paciente.setDataNascimento(pacienteDTO.getDataNascimento());
+        paciente.setTelefone(pacienteDTO.getTelefone());
+        paciente.setEmail(pacienteDTO.getEmail());
+        paciente.setEndereco(endereco);
 
-        pacienteRepository.save(pacienteAtualizado);
-        return pacienteAtualizado;
+        paciente = pacienteRepository.save(paciente);
+        return Paciente.toDTO(paciente);
     }
 
     public void delete(Long id) throws Exception {

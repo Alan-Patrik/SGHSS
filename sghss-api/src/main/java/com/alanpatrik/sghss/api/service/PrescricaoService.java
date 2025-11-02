@@ -1,6 +1,8 @@
 package com.alanpatrik.sghss.api.service;
 
+import com.alanpatrik.sghss.api.dto.PrescricaoDTO;
 import com.alanpatrik.sghss.api.model.Prescricao;
+import com.alanpatrik.sghss.api.model.Prontuario;
 import com.alanpatrik.sghss.api.repository.PrescricaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,55 +16,59 @@ public class PrescricaoService {
     @Autowired
     private ProntuarioService prontuarioService;
 
-    public Prescricao findById(Long id) throws Exception {
+    public PrescricaoDTO findById(Long id) throws Exception {
         if (!verifyIfExistsById(id)) {
             throw new Exception("Prescrição não encontrada!");
         }
-        return prescricaoRepository.findById(id).get();
+        return Prescricao.toDTO(prescricaoRepository.findById(id).get());
     }
 
     private boolean verifyIfExistsById(Long id) {
         return prescricaoRepository.existsById(id);
     }
 
-    private boolean verifyIfContainsByObject(Prescricao prescricao) {
-        return prescricaoRepository.findAll().contains(prescricao);
+    private boolean verifyIfExistsByMedicamento(String medicamento) {
+        return prescricaoRepository.existsPrescricaoByMedicamento((medicamento));
     }
 
-    public Prescricao save(Long idProntuario, Prescricao prescricao) throws Exception {
-        if (verifyIfContainsByObject(prescricao)) {
+    public PrescricaoDTO findByMedicamento(String medicamento) {
+        return Prescricao.toDTO(prescricaoRepository.findByMedicamento((medicamento)));
+    }
+
+    public PrescricaoDTO save(PrescricaoDTO prescricaoDTO) throws Exception {
+        if (verifyIfExistsByMedicamento(prescricaoDTO.getMedicamento())) {
             throw new Exception("Prescrição já cadastrada!");
         }
 
-        if (prontuarioService.findById(idProntuario) == null) {
-            throw new Exception("Paciente não encontrado!");
+        if (prontuarioService.findById(prescricaoDTO.getIdProntuario()) == null) {
+            throw new Exception("Prontuário e ou paciente não encontrado!");
         }
 
-        var prontuario = prontuarioService.findById(idProntuario);
-        var novoPrescricao = Prescricao.builder()
-                .medicamento(prescricao.getMedicamento())
-                .observacao(prescricao.getObservacao())
-                .dosagem(prescricao.getDosagem())
-                .duracao(prescricao.getDuracao())
-                .prontuario(prontuario)
+        var prontuario = prontuarioService.findById(prescricaoDTO.getIdProntuario());
+        var prescricao = Prescricao.builder()
+                .medicamento(prescricaoDTO.getMedicamento())
+                .observacao(prescricaoDTO.getObservacao())
+                .dosagem(prescricaoDTO.getDosagem())
+                .duracao(prescricaoDTO.getDuracao())
+                .prontuario(Prontuario.toEntity(prontuario))
                 .build();
 
-        prescricaoRepository.save(novoPrescricao);
-        return novoPrescricao;
+        prescricao = prescricaoRepository.save(prescricao);
+        return Prescricao.toDTO(prescricao);
     }
 
-    public Prescricao update(Long id, Prescricao prescricao) throws Exception {
+    public PrescricaoDTO update(Long id, PrescricaoDTO prescricaoDTO) throws Exception {
         if (!verifyIfExistsById(id)) {
             throw new Exception("Prescrição não encontrada!");
         }
 
-        var prescricaoAtualizado = prescricaoRepository.findById(id).get();
-        prescricaoAtualizado.setMedicamento(prescricao.getMedicamento());
-        prescricaoAtualizado.setObservacao(prescricao.getObservacao());
-        prescricaoAtualizado.setDosagem(prescricao.getDosagem());
-        prescricaoAtualizado.setDuracao(prescricao.getDuracao());
+        var prescricao = prescricaoRepository.findById(id).get();
+        prescricao.setMedicamento(prescricaoDTO.getMedicamento());
+        prescricao.setObservacao(prescricaoDTO.getObservacao());
+        prescricao.setDosagem(prescricaoDTO.getDosagem());
+        prescricao.setDuracao(prescricaoDTO.getDuracao());
 
-        prescricaoRepository.save(prescricaoAtualizado);
-        return prescricaoAtualizado;
+        prescricao = prescricaoRepository.save(prescricao);
+        return Prescricao.toDTO(prescricao);
     }
 }

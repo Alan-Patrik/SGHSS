@@ -1,6 +1,6 @@
 package com.alanpatrik.sghss.api.controller;
 
-import com.alanpatrik.sghss.api.model.Prontuario;
+import com.alanpatrik.sghss.api.dto.ProntuarioDTO;
 import com.alanpatrik.sghss.api.service.ProntuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,17 +13,17 @@ public class ProntuarioController {
     private ProntuarioService prontuarioService;
 
     @GetMapping("/{id}")
-    public Prontuario getById(@PathVariable Long id) throws Exception {
+    public ProntuarioDTO getById(@PathVariable Long id) throws Exception {
         return prontuarioService.findById(id);
     }
 
-    @PostMapping("/{id}")
-    public Prontuario create(@PathVariable Long id, @RequestBody Prontuario prontuario) throws Exception {
-        return prontuarioService.save(id, prontuario);
+    @PostMapping
+    public ProntuarioDTO create(@RequestBody ProntuarioDTO prontuarioDTO) throws Exception {
+        return prontuarioService.save(prontuarioDTO);
     }
 
     @PutMapping("/{id}")
-    public Prontuario update(@PathVariable Long id, @RequestBody Prontuario prontuario) throws Exception {
-        return prontuarioService.update(id, prontuario);
+    public ProntuarioDTO update(@PathVariable Long id, @RequestBody ProntuarioDTO prontuarioDTO) throws Exception {
+        return prontuarioService.update(id, prontuarioDTO);
     }
 }

@@ -20,7 +20,7 @@ public class Endereco {
     @Column(name = "NUM_NUMERO", nullable = false)
     private String numero;
 
-    @Column(name = "TXT_COMPLEMENTO", nullable = true)
+    @Column(name = "TXT_COMPLEMENTO")
     private String complemento;
 
     @Column(name = "TXT_BAIRRO", nullable = false)

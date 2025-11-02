@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PrescricaoRepository extends JpaRepository<Prescricao, Long> {
+    boolean existsPrescricaoByMedicamento(String medicamento);
+
+    Prescricao findByMedicamento(String medicamento);
 }

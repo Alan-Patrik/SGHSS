@@ -1,8 +1,12 @@
 package com.alanpatrik.sghss.api.model;
 
+import com.alanpatrik.sghss.api.dto.PrescricaoDTO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder
 @NoArgsConstructor
@@ -33,4 +37,30 @@ public class Prescricao {
     @JsonIgnore
     @JoinColumn(name = "ID_PRONTUARIO")
     private Prontuario prontuario;
+
+    public static PrescricaoDTO toDTO(Prescricao prescricao) {
+        var prescricaoDTO = new PrescricaoDTO();
+        prescricaoDTO.setId(prescricao.getId());
+        prescricaoDTO.setMedicamento(prescricao.getMedicamento());
+        prescricaoDTO.setObservacao(prescricao.getObservacao());
+        prescricaoDTO.setDosagem(prescricao.getDosagem());
+        prescricaoDTO.setDuracao(prescricao.getDuracao());
+        prescricaoDTO.setIdProntuario(prescricao.getProntuario().getId());
+        return prescricaoDTO;
+    }
+
+    public static List<Prescricao> toEntityDTOLis(List<PrescricaoDTO> prescricaoDTOList) {
+        var prescricoes = new ArrayList<Prescricao>();
+        for (PrescricaoDTO prescricaoDTO : prescricaoDTOList) {
+            var prescricao = new Prescricao();
+            prescricao.setId(prescricaoDTO.getId());
+            prescricao.setMedicamento(prescricaoDTO.getMedicamento());
+            prescricao.setObservacao(prescricaoDTO.getObservacao());
+            prescricao.setDosagem(prescricaoDTO.getDosagem());
+            prescricao.setDuracao(prescricaoDTO.getDuracao());
+
+            prescricoes.add(prescricao);
+        }
+        return prescricoes;
+    }
 }

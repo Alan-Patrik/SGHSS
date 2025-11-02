@@ -1,5 +1,6 @@
 package com.alanpatrik.sghss.api.model;
 
+import com.alanpatrik.sghss.api.dto.PacienteDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,6 +31,28 @@ public class Paciente extends Pessoa {
             Endereco endereco
     ) {
         super(nome, cpf, dataNascimento, telefone, email, endereco);
+    }
+
+    public static PacienteDTO toDTO(Paciente paciente) {
+        var pacienteDTO = new PacienteDTO();
+        pacienteDTO.setNome(paciente.getNome());
+        pacienteDTO.setCpf(paciente.getCpf());
+        pacienteDTO.setDataNascimento(paciente.getDataNascimento());
+        pacienteDTO.setTelefone(paciente.getTelefone());
+        pacienteDTO.setEmail(paciente.getEmail());
+        pacienteDTO.setEndereco(paciente.getEndereco());
+        return pacienteDTO;
+    }
+
+    public static Paciente toEntity(PacienteDTO pacienteDTO) {
+        var paciente = new Paciente();
+        paciente.setNome(pacienteDTO.getNome());
+        paciente.setCpf(pacienteDTO.getCpf());
+        paciente.setDataNascimento(pacienteDTO.getDataNascimento());
+        paciente.setTelefone(pacienteDTO.getTelefone());
+        paciente.setEmail(pacienteDTO.getEmail());
+        paciente.setEndereco(pacienteDTO.getEndereco());
+        return paciente;
     }
 
 //    public Consulta agendarConsulta(Consulta consulta) {

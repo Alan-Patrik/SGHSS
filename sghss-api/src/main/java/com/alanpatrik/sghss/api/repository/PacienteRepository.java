@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 public interface PacienteRepository extends JpaRepository<Paciente, Long> {
     boolean existsPacienteByNome(String nome);
 
+    Paciente findByNome(String nome);
+
     @Query(value = "SELECT pa.* FROM paciente pa " +
             "LEFT JOIN prontuario pr ON pr.id_paciente = pa.id_paciente " +
             "WHERE pa.id_paciente = :id", nativeQuery = true)
