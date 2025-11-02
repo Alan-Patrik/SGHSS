@@ -1,12 +1,14 @@
 package com.alanpatrik.sghss.api.service;
 
-import com.alanpatrik.sghss.api.dto.PacienteDTO;
+import com.alanpatrik.sghss.api.dto.request.PacienteRequestDTO;
+import com.alanpatrik.sghss.api.dto.response.PacienteResponseDTO;
 import com.alanpatrik.sghss.api.model.Endereco;
 import com.alanpatrik.sghss.api.model.Paciente;
 import com.alanpatrik.sghss.api.repository.PacienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -15,22 +17,22 @@ public class PacienteService {
     @Autowired
     private PacienteRepository pacienteRepository;
 
-    public List<PacienteDTO> findAll() {
+    public List<PacienteResponseDTO> findAll() {
         return pacienteRepository.findAll().stream()
-                .map(Paciente::toDTO)
+                .map(Paciente::toResponseDTO)
                 .toList();
 
     }
 
-    public PacienteDTO findById(Long id) throws Exception {
+    public PacienteResponseDTO findById(Long id) throws Exception {
         if (!verifyIfExistsById(id)) {
             throw new Exception("Paciente não cadastrado!");
         }
-        return Paciente.toDTO(pacienteRepository.findById(id).get());
+        return Paciente.toResponseDTO(pacienteRepository.findById(id).get());
     }
 
-    public PacienteDTO findByHistoricoClinico(Long id) {
-        return Paciente.toDTO(pacienteRepository.findByHistoricoClinico(id));
+    public PacienteResponseDTO findByHistoricoClinico(Long id) {
+        return Paciente.toResponseDTO(pacienteRepository.findByHistoricoClinico(id));
     }
 
     private boolean verifyIfExistsById(Long id) {
@@ -41,46 +43,16 @@ public class PacienteService {
         return pacienteRepository.existsPacienteByNome((nome));
     }
 
-    public PacienteDTO findByName(String nome) {
-        return Paciente.toDTO(pacienteRepository.findByNome((nome)));
+    public PacienteResponseDTO findByName(String nome) {
+        return Paciente.toResponseDTO(pacienteRepository.findByNome((nome)));
     }
 
-    public PacienteDTO save(PacienteDTO pacienteDTO) throws Exception {
-        if (verifyIfExistsByName(pacienteDTO.getNome())) {
+    public PacienteResponseDTO save(PacienteRequestDTO pacienteRequestDTO) throws Exception {
+        if (verifyIfExistsByName(pacienteRequestDTO.getNome())) {
             throw new Exception("Paciente já cadastrado!");
         }
 
-        var endereco = Endereco.builder()
-                .logradouro(pacienteDTO.getEndereco().getLogradouro())
-                .numero(pacienteDTO.getEndereco().getNumero())
-                .complemento(pacienteDTO.getEndereco().getComplemento())
-                .bairro(pacienteDTO.getEndereco().getBairro())
-                .cidade(pacienteDTO.getEndereco().getCidade())
-                .estado(pacienteDTO.getEndereco().getEstado())
-                .cep(pacienteDTO.getEndereco().getCep())
-                .build();
-
-
-        var paciente = new Paciente(
-                pacienteDTO.getNome(),
-                pacienteDTO.getCpf(),
-                pacienteDTO.getDataNascimento(),
-                pacienteDTO.getTelefone(),
-                pacienteDTO.getEmail(),
-                endereco
-        );
-
-        paciente = pacienteRepository.save(paciente);
-        return Paciente.toDTO(paciente);
-    }
-
-    public PacienteDTO update(Long id, PacienteDTO pacienteDTO) throws Exception {
-        if (!verifyIfExistsById(id)) {
-            throw new Exception("Paciente não cadastrado!");
-        }
-
-        var paciente = pacienteRepository.findById(id).get();
-        var enderecoPaciente = pacienteDTO.getEndereco();
+        var enderecoPaciente = pacienteRequestDTO.getEndereco();
         var endereco = Endereco.builder()
                 .logradouro(enderecoPaciente.getLogradouro())
                 .numero(enderecoPaciente.getNumero())
@@ -91,15 +63,50 @@ public class PacienteService {
                 .cep(enderecoPaciente.getCep())
                 .build();
 
-        paciente.setNome(pacienteDTO.getNome());
-        paciente.setCpf(pacienteDTO.getCpf());
-        paciente.setDataNascimento(pacienteDTO.getDataNascimento());
-        paciente.setTelefone(pacienteDTO.getTelefone());
-        paciente.setEmail(pacienteDTO.getEmail());
-        paciente.setEndereco(endereco);
+
+        var paciente = new Paciente(
+                pacienteRequestDTO.getNome(),
+                pacienteRequestDTO.getCpf(),
+                pacienteRequestDTO.getDataNascimento(),
+                pacienteRequestDTO.getTelefone(),
+                pacienteRequestDTO.getEmail(),
+                endereco,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                null
+        );
 
         paciente = pacienteRepository.save(paciente);
-        return Paciente.toDTO(paciente);
+        return Paciente.toResponseDTO(paciente);
+    }
+
+    public PacienteResponseDTO update(Long id, PacienteRequestDTO pacienteRequestDTO) throws Exception {
+        if (!verifyIfExistsById(id)) {
+            throw new Exception("Paciente não cadastrado!");
+        }
+
+        var paciente = pacienteRepository.findById(id).get();
+        var enderecoPaciente = pacienteRequestDTO.getEndereco();
+        var endereco = Endereco.builder()
+                .logradouro(enderecoPaciente.getLogradouro())
+                .numero(enderecoPaciente.getNumero())
+                .complemento(enderecoPaciente.getComplemento())
+                .bairro(enderecoPaciente.getBairro())
+                .cidade(enderecoPaciente.getCidade())
+                .estado(enderecoPaciente.getEstado())
+                .cep(enderecoPaciente.getCep())
+                .build();
+
+        paciente.setNome(pacienteRequestDTO.getNome());
+        paciente.setCpf(pacienteRequestDTO.getCpf());
+        paciente.setDataNascimento(pacienteRequestDTO.getDataNascimento());
+        paciente.setTelefone(pacienteRequestDTO.getTelefone());
+        paciente.setEmail(pacienteRequestDTO.getEmail());
+        paciente.setEndereco(endereco);
+        paciente.setDataModificacao(LocalDateTime.now());
+
+        paciente = pacienteRepository.save(paciente);
+        return Paciente.toResponseDTO(paciente);
     }
 
     public void delete(Long id) throws Exception {

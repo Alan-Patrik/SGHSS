@@ -1,8 +1,11 @@
 package com.alanpatrik.sghss.api.controller;
 
-import com.alanpatrik.sghss.api.dto.PacienteDTO;
+import com.alanpatrik.sghss.api.dto.request.PacienteRequestDTO;
+import com.alanpatrik.sghss.api.dto.response.PacienteResponseDTO;
 import com.alanpatrik.sghss.api.service.PacienteService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,32 +18,37 @@ public class PacienteController {
     private PacienteService pacienteService;
 
     @GetMapping
-    public List<PacienteDTO> getAll() {
-        return pacienteService.findAll();
+    public ResponseEntity<List<PacienteResponseDTO>> getAll() {
+        return ResponseEntity
+                .status(HttpStatus.OK.value())
+                .body(pacienteService.findAll());
     }
 
     @GetMapping("/{id}")
-    public PacienteDTO getById(@PathVariable Long id) throws Exception {
-        return pacienteService.findById(id);
-    }
-
-    @GetMapping("/{id}/historico-clinico")
-    public PacienteDTO getHistoricoClinicoById(@PathVariable Long id) {
-        return pacienteService.findByHistoricoClinico(id);
+    public ResponseEntity<PacienteResponseDTO> getById(@PathVariable Long id) throws Exception {
+        return ResponseEntity
+                .status(HttpStatus.OK.value())
+                .body(pacienteService.findById(id));
     }
 
     @PostMapping
-    public PacienteDTO create(@RequestBody PacienteDTO pacienteDTO) throws Exception {
-        return pacienteService.save(pacienteDTO);
+    public ResponseEntity<PacienteResponseDTO> create(@RequestBody PacienteRequestDTO pacienteRequestDTO) throws Exception {
+        return ResponseEntity
+                .status(HttpStatus.CREATED.value())
+                .body(pacienteService.save(pacienteRequestDTO));
     }
 
     @PutMapping("/{id}")
-    public PacienteDTO update(@PathVariable Long id, @RequestBody PacienteDTO pacienteDTO) throws Exception {
-        return pacienteService.update(id, pacienteDTO);
+    public ResponseEntity<PacienteResponseDTO> update(@PathVariable Long id, @RequestBody PacienteRequestDTO pacienteRequestDTO) throws Exception {
+        return ResponseEntity
+                .status(HttpStatus.OK.value())
+                .body(pacienteService.update(id, pacienteRequestDTO));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) throws Exception {
+    public ResponseEntity delete(@PathVariable Long id) throws Exception {
         pacienteService.delete(id);
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT.value()).build();
     }
 }

@@ -1,11 +1,12 @@
 package com.alanpatrik.sghss.api.model;
 
-import com.alanpatrik.sghss.api.dto.PacienteDTO;
+import com.alanpatrik.sghss.api.dto.response.PacienteResponseDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @NoArgsConstructor
@@ -28,31 +29,26 @@ public class Paciente extends Pessoa {
             String dataNascimento,
             String telefone,
             String email,
-            Endereco endereco
+            Endereco endereco,
+            LocalDateTime dataCriacao,
+            LocalDateTime dataModificacao,
+            List<Prontuario> prontuarios
     ) {
-        super(nome, cpf, dataNascimento, telefone, email, endereco);
+        super(nome, cpf, dataNascimento, telefone, email, endereco, dataCriacao, dataModificacao);
+        this.prontuarios = prontuarios;
     }
 
-    public static PacienteDTO toDTO(Paciente paciente) {
-        var pacienteDTO = new PacienteDTO();
-        pacienteDTO.setNome(paciente.getNome());
-        pacienteDTO.setCpf(paciente.getCpf());
-        pacienteDTO.setDataNascimento(paciente.getDataNascimento());
-        pacienteDTO.setTelefone(paciente.getTelefone());
-        pacienteDTO.setEmail(paciente.getEmail());
-        pacienteDTO.setEndereco(paciente.getEndereco());
-        return pacienteDTO;
-    }
-
-    public static Paciente toEntity(PacienteDTO pacienteDTO) {
-        var paciente = new Paciente();
-        paciente.setNome(pacienteDTO.getNome());
-        paciente.setCpf(pacienteDTO.getCpf());
-        paciente.setDataNascimento(pacienteDTO.getDataNascimento());
-        paciente.setTelefone(pacienteDTO.getTelefone());
-        paciente.setEmail(pacienteDTO.getEmail());
-        paciente.setEndereco(pacienteDTO.getEndereco());
-        return paciente;
+    public static PacienteResponseDTO toResponseDTO(Paciente paciente) {
+        var pacienteResponseDTO = new PacienteResponseDTO();
+        pacienteResponseDTO.setNome(paciente.getNome());
+        pacienteResponseDTO.setCpf(paciente.getCpf());
+        pacienteResponseDTO.setDataNascimento(paciente.getDataNascimento());
+        pacienteResponseDTO.setTelefone(paciente.getTelefone());
+        pacienteResponseDTO.setEmail(paciente.getEmail());
+        pacienteResponseDTO.setEndereco(paciente.getEndereco());
+        pacienteResponseDTO.setDataCriacao(paciente.getDataCriacao());
+        pacienteResponseDTO.setDataModificacao(paciente.getDataModificacao());
+        return pacienteResponseDTO;
     }
 
 //    public Consulta agendarConsulta(Consulta consulta) {

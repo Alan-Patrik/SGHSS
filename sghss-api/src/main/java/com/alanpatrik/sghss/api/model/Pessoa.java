@@ -1,5 +1,6 @@
 package com.alanpatrik.sghss.api.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.MappedSuperclass;
@@ -7,6 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
 
 @MappedSuperclass
 @NoArgsConstructor
@@ -31,5 +35,15 @@ public abstract class Pessoa {
 
     @Embedded
     protected Endereco endereco;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @Column(name = "DATA_CRIACAO", nullable = false)
+    private LocalDateTime dataCriacao;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @Column(name = "DATA_MODIFICACAO", nullable = false)
+    private LocalDateTime dataModificacao;
 
 }
