@@ -40,6 +40,7 @@ public class Paciente extends Pessoa {
 
     public static PacienteResponseDTO toResponseDTO(Paciente paciente) {
         var pacienteResponseDTO = new PacienteResponseDTO();
+        pacienteResponseDTO.setId(paciente.getId());
         pacienteResponseDTO.setNome(paciente.getNome());
         pacienteResponseDTO.setCpf(paciente.getCpf());
         pacienteResponseDTO.setDataNascimento(paciente.getDataNascimento());
@@ -49,6 +50,20 @@ public class Paciente extends Pessoa {
         pacienteResponseDTO.setDataCriacao(paciente.getDataCriacao());
         pacienteResponseDTO.setDataModificacao(paciente.getDataModificacao());
         return pacienteResponseDTO;
+    }
+
+    public static Paciente toEntity(PacienteResponseDTO pacienteResponseDTO) {
+        var paciente = new Paciente();
+        paciente.setId(pacienteResponseDTO.getId());
+        paciente.setNome(pacienteResponseDTO.getNome());
+        paciente.setCpf(pacienteResponseDTO.getCpf());
+        paciente.setDataNascimento(pacienteResponseDTO.getDataNascimento());
+        paciente.setTelefone(pacienteResponseDTO.getTelefone());
+        paciente.setEmail(pacienteResponseDTO.getEmail());
+        paciente.setEndereco(pacienteResponseDTO.getEndereco());
+        paciente.setDataCriacao(pacienteResponseDTO.getDataCriacao());
+        paciente.setDataModificacao(pacienteResponseDTO.getDataModificacao());
+        return paciente;
     }
 
 //    public Consulta agendarConsulta(Consulta consulta) {
