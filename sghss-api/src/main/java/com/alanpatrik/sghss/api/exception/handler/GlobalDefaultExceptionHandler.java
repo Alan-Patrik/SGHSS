@@ -1,5 +1,6 @@
 package com.alanpatrik.sghss.api.exception.handler;
 
+import com.alanpatrik.sghss.api.exception.ConflitoException;
 import com.alanpatrik.sghss.api.exception.InformacaoNaoEncontradaException;
 import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
 import com.alanpatrik.sghss.api.model.ErroDTO;
@@ -34,5 +35,16 @@ public class GlobalDefaultExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+    }
+
+    @ExceptionHandler(ConflitoException.class)
+    public ResponseEntity<ErroDTO> informacaoJaCadastrada(ConflitoException ex, HttpServletRequest request) {
+        var erro = new ErroDTO(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
     }
 }

@@ -29,6 +29,10 @@ public class PacienteService {
         return Paciente.toResponseDTO(paciente);
     }
 
+    public Paciente findByName(String nome) {
+        return pacienteRepository.findByNome(nome).orElseThrow(() -> new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
+    }
+
     public PacienteResponseDTO findByHistoricoClinico(Long id) {
         return Paciente.toResponseDTO(pacienteRepository.findByHistoricoClinico(id));
     }

@@ -37,7 +37,7 @@ public class Prontuario {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime dataModificacao;
 
-    @ManyToOne
+    @OneToOne
     @JsonIgnore
     @JoinColumn(name = "ID_PACIENTE")
     private Paciente paciente;
@@ -63,9 +63,10 @@ public class Prontuario {
     public static Prontuario toEntity(ProntuarioResponseDTO prontuarioDTO) {
         var prontuario = new Prontuario();
         prontuario.setId(prontuarioDTO.getId());
+        prontuario.setDataCriacao(prontuarioDTO.getDataCriacao());
         prontuario.setDataModificacao(prontuarioDTO.getDataModificacao());
         prontuario.setObservacao(prontuarioDTO.getObservacao());
-        prontuario.setPrescricoes(Prescricao.toEntityDTOLis(prontuarioDTO.getPrescricoes()));
+        prontuario.setPrescricoes(Prescricao.responseToEntityList(prontuarioDTO.getPrescricoes()));
 
         return prontuario;
     }

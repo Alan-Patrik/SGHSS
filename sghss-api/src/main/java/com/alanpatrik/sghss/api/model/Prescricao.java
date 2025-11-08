@@ -24,7 +24,7 @@ public class Prescricao {
     @Column(name = "TXT_NOME_MEDICAMENTO", nullable = false)
     private String medicamento;
 
-    @Column(name = "TXT_OBSERVACAO", nullable = false)
+    @Column(name = "TXT_OBSERVACAO")
     private String observacao;
 
     @Column(name = "TXT_DOSAGEM", nullable = false)
@@ -48,15 +48,20 @@ public class Prescricao {
         return prescricaoDTO;
     }
 
-    public static List<Prescricao> toEntityDTOLis(List<PrescricaoResponseDTO> prescricaoDTOList) {
+    public static Prescricao toEntity(PrescricaoResponseDTO prescricaoResponseDTO) {
+        var prescricao = new Prescricao();
+        prescricao.setId(prescricaoResponseDTO.getId());
+        prescricao.setMedicamento(prescricaoResponseDTO.getMedicamento());
+        prescricao.setObservacao(prescricaoResponseDTO.getObservacao());
+        prescricao.setDosagem(prescricaoResponseDTO.getDosagem());
+        prescricao.setDuracao(prescricaoResponseDTO.getDuracao());
+        return prescricao;
+    }
+
+    public static List<Prescricao> responseToEntityList(List<PrescricaoResponseDTO> prescricaoDTOList) {
         var prescricoes = new ArrayList<Prescricao>();
         for (PrescricaoResponseDTO prescricaoDTO : prescricaoDTOList) {
-            var prescricao = new Prescricao();
-            prescricao.setId(prescricaoDTO.getId());
-            prescricao.setMedicamento(prescricaoDTO.getMedicamento());
-            prescricao.setObservacao(prescricaoDTO.getObservacao());
-            prescricao.setDosagem(prescricaoDTO.getDosagem());
-            prescricao.setDuracao(prescricaoDTO.getDuracao());
+            var prescricao = toEntity(prescricaoDTO);
 
             prescricoes.add(prescricao);
         }

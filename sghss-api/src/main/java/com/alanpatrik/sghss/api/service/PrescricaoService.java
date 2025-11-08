@@ -1,48 +1,39 @@
 package com.alanpatrik.sghss.api.service;
 
+import com.alanpatrik.sghss.api.comum.Constantes;
 import com.alanpatrik.sghss.api.dto.request.PrescricaoRequestDTO;
 import com.alanpatrik.sghss.api.dto.response.PrescricaoResponseDTO;
+import com.alanpatrik.sghss.api.exception.ConflitoException;
+import com.alanpatrik.sghss.api.exception.InformacaoNaoEncontradaException;
+import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
 import com.alanpatrik.sghss.api.model.Prescricao;
 import com.alanpatrik.sghss.api.model.Prontuario;
 import com.alanpatrik.sghss.api.repository.PrescricaoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+@RequiredArgsConstructor
 @Service
 public class PrescricaoService {
 
-    @Autowired
-    private PrescricaoRepository prescricaoRepository;
+    private final PrescricaoRepository prescricaoRepository;
+    private final ProntuarioService prontuarioService;
 
-    @Autowired
-    private ProntuarioService prontuarioService;
-
-    public PrescricaoResponseDTO findById(Long id) throws Exception {
-        if (!verifyIfExistsById(id)) {
-            throw new Exception("Prescrição não encontrada!");
-        }
-        return Prescricao.toResponseDTO(prescricaoRepository.findById(id).get());
-    }
-
-    private boolean verifyIfExistsById(Long id) {
-        return prescricaoRepository.existsById(id);
+    public PrescricaoResponseDTO findById(Long id) {
+        var prescricao = prescricaoRepository.findById(id).orElseThrow(() ->
+                new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
+        return Prescricao.toResponseDTO(prescricao);
     }
 
     private boolean verifyIfExistsByMedicamento(String medicamento) {
         return prescricaoRepository.existsPrescricaoByMedicamento((medicamento));
     }
 
-    public PrescricaoResponseDTO findByMedicamento(String medicamento) {
-        return Prescricao.toResponseDTO(prescricaoRepository.findByMedicamento((medicamento)));
-    }
+    public PrescricaoResponseDTO save(PrescricaoRequestDTO prescricaoRequestDTO) {
+        this.validarParametrosObrigatorios(prescricaoRequestDTO);
 
-    public PrescricaoResponseDTO save(PrescricaoRequestDTO prescricaoRequestDTO) throws Exception {
         if (verifyIfExistsByMedicamento(prescricaoRequestDTO.getMedicamento())) {
-            throw new Exception("Prescrição já cadastrada!");
-        }
-
-        if (prontuarioService.findById(prescricaoRequestDTO.getIdProntuario()) == null) {
-            throw new Exception("Prontuário e ou paciente não encontrado!");
+            throw new ConflitoException(Constantes.CONFLICT_MESSAGE);
         }
 
         var prontuario = prontuarioService.findById(prescricaoRequestDTO.getIdProntuario());
@@ -58,12 +49,10 @@ public class PrescricaoService {
         return Prescricao.toResponseDTO(prescricao);
     }
 
-    public PrescricaoResponseDTO update(Long id, PrescricaoRequestDTO prescricaoRequestDTO) throws Exception {
-        if (!verifyIfExistsById(id)) {
-            throw new Exception("Prescrição não encontrada!");
-        }
+    public PrescricaoResponseDTO update(Long id, PrescricaoRequestDTO prescricaoRequestDTO) {
+        this.validarParametrosObrigatorios(prescricaoRequestDTO);
 
-        var prescricao = prescricaoRepository.findById(id).get();
+        var prescricao = Prescricao.toEntity(this.findById(id));
         prescricao.setMedicamento(prescricaoRequestDTO.getMedicamento());
         prescricao.setObservacao(prescricaoRequestDTO.getObservacao());
         prescricao.setDosagem(prescricaoRequestDTO.getDosagem());
@@ -72,4 +61,20 @@ public class PrescricaoService {
         prescricao = prescricaoRepository.save(prescricao);
         return Prescricao.toResponseDTO(prescricao);
     }
+
+    private void validarParametrosObrigatorios(PrescricaoRequestDTO prescricaoRequestDTO) {
+        if (prescricaoRequestDTO.getMedicamento() == null || prescricaoRequestDTO.getMedicamento().isEmpty()) {
+            throw new ParametroInvalidoException("O campo Medicamento é obrigatório.");
+        }
+        if (prescricaoRequestDTO.getDosagem() == null || prescricaoRequestDTO.getDosagem().isEmpty()) {
+            throw new ParametroInvalidoException("O campo Dosagem é obrigatório.");
+        }
+        if (prescricaoRequestDTO.getDuracao() == null || prescricaoRequestDTO.getDuracao().isEmpty()) {
+            throw new ParametroInvalidoException("O campo Duração é obrigatório.");
+        }
+        if (prescricaoRequestDTO.getIdProntuario() == null) {
+            throw new ParametroInvalidoException("O campo Id do prontuário é obrigatório.");
+        }
+    }
+
 }

@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @NoArgsConstructor
 @Getter
@@ -20,8 +19,8 @@ public class Paciente extends Pessoa {
     @Column(name = "ID_PACIENTE", nullable = false)
     private Long id;
 
-    @OneToMany(mappedBy = "paciente", fetch = FetchType.LAZY)
-    private List<Prontuario> prontuarios;
+    @OneToOne(mappedBy = "paciente")
+    private Prontuario prontuario;
 
     public Paciente(
             String nome,
@@ -32,10 +31,10 @@ public class Paciente extends Pessoa {
             Endereco endereco,
             LocalDateTime dataCriacao,
             LocalDateTime dataModificacao,
-            List<Prontuario> prontuarios
+            Prontuario prontuario
     ) {
         super(nome, cpf, dataNascimento, telefone, email, endereco, dataCriacao, dataModificacao);
-        this.prontuarios = prontuarios;
+        this.prontuario = prontuario;
     }
 
     public static PacienteResponseDTO toResponseDTO(Paciente paciente) {
