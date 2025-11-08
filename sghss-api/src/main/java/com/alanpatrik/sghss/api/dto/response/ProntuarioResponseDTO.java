@@ -1,0 +1,23 @@
+package com.alanpatrik.sghss.api.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
+public class ProntuarioResponseDTO {
+    private Long id;
+    private String observacao;
+    private String nomePaciente;
+    private LocalDateTime dataCriacao;
+    private LocalDateTime dataModificacao;
+    private List<PrescricaoResponseDTO> prescricoes;
+
+}
