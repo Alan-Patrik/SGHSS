@@ -86,6 +86,24 @@ public class AgendaController {
                 .body(agendaService.addTime(id, dataHoraNovaConsulta));
     }
 
+    @PostMapping("/{id}/horario/agendar")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "400", description = Constantes.BAD_REQUEST_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "409", description = Constantes.CONFLICT_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
+    })
+    public ResponseEntity schedule(
+            @Parameter(example = "id", description = "Id da agenda cadastrada", required = true) @PathVariable(name = "id") Long id,
+            @Parameter(example = "dataHoraConsulta", description = "Data e hora da consulta", required = true, name = "dataHoraConsulta") @RequestParam LocalDateTime dataHoraConsulta
+    ) {
+        agendaService.schedule(id, dataHoraConsulta);
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
+    }
+
     @PutMapping("/{id}/horario")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -104,6 +122,9 @@ public class AgendaController {
                 .body(agendaService.updateTime(id, dataHoraConsultaAntiga, dataHoraNovaConsulta));
     }
 
+    // TODO
+    // FAZER AUTENTICAÇÃO NO SISTEMA
+    // METODO SERÁ SOMENTE PARA O ADM DO SISTEMA
     @DeleteMapping("/{id}/horario")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = Constantes.NO_CONTENT_MESSAGE, useReturnTypeSchema = true),

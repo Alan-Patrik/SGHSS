@@ -29,7 +29,7 @@ public class AgendaService {
     private final ProfissionalSaudeService profissionalSaudeService;
 
     public List<AgendaResponseDTO> getAll() {
-        return Agenda.toResponseDTOList(agendaRepository.findAll());
+        return agendaRepository.findAll().stream().map(Agenda::toResponseDTO).toList();
     }
 
     public AgendaResponseDTO findById(Long id) {
@@ -150,6 +150,39 @@ public class AgendaService {
 
         var agenda = agendaRepository.save(Agenda.toEntity(agendaResponseDTO));
         return Agenda.toResponseDTO(agenda);
+    }
+
+    public void schedule(Long id, LocalDateTime dataHoraConsulta) {
+        this.validarParametrosObrigatorios(id, dataHoraConsulta);
+        var agendaResponseDTO = this.findById(id);
+
+        var containsHorario = false;
+        var horarioDTO = new HorarioDisponivelDTO();
+        var horariosDisponiveis = new ArrayList<HorarioDisponivelDTO>();
+        for (var horario : agendaResponseDTO.getHorariosDisponiveis()) {
+            if (horario.getHorarioDisponivel().equals(dataHoraConsulta) &&
+                    horario.getStatus().equals(StatusHorario.D)) {
+                horariosDisponiveis.remove(horario);
+
+                horarioDTO.setStatus(StatusHorario.N);
+                horarioDTO.setHorarioDisponivel(dataHoraConsulta);
+                horariosDisponiveis.add(horarioDTO);
+                containsHorario = true;
+            } else {
+                horariosDisponiveis.add(horario);
+            }
+        }
+
+        if (!containsHorario) {
+            throw new InformacaoNaoEncontradaException("Horário não encontrado.");
+        }
+
+        var listaOrdenada = horariosDisponiveis.stream()
+                .sorted(Comparator.comparing(h -> h.getHorarioDisponivel().toLocalTime()))
+                .toList();
+        agendaResponseDTO.setHorariosDisponiveis(listaOrdenada);
+
+        agendaRepository.save(Agenda.toEntity(agendaResponseDTO));
     }
 
     public void deleteTime(Long id, LocalDateTime dataHoraConsulta) {

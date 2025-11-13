@@ -1,6 +1,7 @@
 package com.alanpatrik.sghss.api.model.dto.request;
 
 import com.alanpatrik.sghss.api.model.Endereco;
+import com.alanpatrik.sghss.api.model.enums.AreaAtuacao;
 import com.alanpatrik.sghss.api.model.enums.Especialidade;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,5 +24,6 @@ public class ProfissionalSaudeRequestDTO {
     private LocalDateTime dataCriacao;
     private LocalDateTime dataModificacao;
     private Especialidade especialidade;
+    private AreaAtuacao areaAtuacao;
     private String CRM;
 }

@@ -1,6 +1,7 @@
 package com.alanpatrik.sghss.api.model;
 
 import com.alanpatrik.sghss.api.model.dto.response.ProfissionalSaudeResponseDTO;
+import com.alanpatrik.sghss.api.model.enums.AreaAtuacao;
 import com.alanpatrik.sghss.api.model.enums.Especialidade;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @NoArgsConstructor
 @Getter
@@ -25,8 +27,15 @@ public class ProfissionalSaude extends Pessoa {
     @Enumerated(EnumType.STRING)
     private Especialidade especialidade;
 
+    @Column(name = "AREA_ATUACAO", nullable = false)
+    private AreaAtuacao areaAtuacao;
+
     @Column(name = "TXT_CRM", nullable = false)
     private String CRM;
+
+    @OneToMany(mappedBy = "profissionalSaude")
+    @JsonIgnore
+    private List<Consulta> consultas;
 
     @OneToOne(mappedBy = "profissionalSaude")
     @JsonIgnore
@@ -42,10 +51,14 @@ public class ProfissionalSaude extends Pessoa {
             LocalDateTime dataCriacao,
             LocalDateTime dataModificacao,
             Especialidade especialidade,
+            AreaAtuacao areaAtuacao,
+            List<Consulta> consultas,
             String CRM,
             Agenda agenda) {
         super(nome, cpf, dataNascimento, telefone, email, endereco, dataCriacao, dataModificacao);
         this.especialidade = especialidade;
+        this.areaAtuacao = areaAtuacao;
+        this.consultas = consultas;
         this.CRM = CRM;
         this.agenda = agenda;
     }
@@ -62,6 +75,8 @@ public class ProfissionalSaude extends Pessoa {
         profissionalSaudeResponseDTO.setDataCriacao(profissionalSaude.getDataCriacao());
         profissionalSaudeResponseDTO.setDataModificacao(profissionalSaude.getDataModificacao());
         profissionalSaudeResponseDTO.setEspecialidade(profissionalSaude.getEspecialidade());
+        profissionalSaudeResponseDTO.setAreaAtuacao(profissionalSaude.getAreaAtuacao());
+        profissionalSaudeResponseDTO.setConsultas(Consulta.responseToDTOList(profissionalSaude.getConsultas()));
         profissionalSaudeResponseDTO.setCRM(profissionalSaude.getCRM());
         return profissionalSaudeResponseDTO;
     }
@@ -78,6 +93,8 @@ public class ProfissionalSaude extends Pessoa {
         profissionalSaude.setDataCriacao(profissionalSaudeResponseDTO.getDataCriacao());
         profissionalSaude.setDataModificacao(profissionalSaudeResponseDTO.getDataModificacao());
         profissionalSaude.setEspecialidade(profissionalSaudeResponseDTO.getEspecialidade());
+        profissionalSaude.setAreaAtuacao(profissionalSaudeResponseDTO.getAreaAtuacao());
+        profissionalSaude.setConsultas(profissionalSaude.getConsultas());
         profissionalSaude.setCRM(profissionalSaudeResponseDTO.getCRM());
         return profissionalSaude;
     }

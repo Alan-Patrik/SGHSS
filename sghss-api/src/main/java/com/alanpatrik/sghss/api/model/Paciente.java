@@ -2,12 +2,14 @@ package com.alanpatrik.sghss.api.model;
 
 import com.alanpatrik.sghss.api.model.dto.response.HistoricoPacienteResponseDTO;
 import com.alanpatrik.sghss.api.model.dto.response.PacienteResponseDTO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @NoArgsConstructor
 @Getter
@@ -22,6 +24,10 @@ public class Paciente extends Pessoa {
 
     @OneToOne(mappedBy = "paciente")
     private Prontuario prontuario;
+
+    @OneToMany(mappedBy = "paciente")
+    @JsonIgnore
+    private List<Consulta> consultas;
 
     public Paciente(
             String nome,

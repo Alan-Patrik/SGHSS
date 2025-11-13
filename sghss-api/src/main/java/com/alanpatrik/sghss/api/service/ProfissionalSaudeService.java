@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -68,6 +69,8 @@ public class ProfissionalSaudeService {
                 LocalDateTime.now(),
                 LocalDateTime.now(),
                 profissionalSaudeRequestDTO.getEspecialidade(),
+                profissionalSaudeRequestDTO.getAreaAtuacao(),
+                new ArrayList<>(),
                 profissionalSaudeRequestDTO.getCRM(),
                 null);
 
