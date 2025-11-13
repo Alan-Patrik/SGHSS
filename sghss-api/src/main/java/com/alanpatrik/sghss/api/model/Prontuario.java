@@ -1,6 +1,6 @@
 package com.alanpatrik.sghss.api.model;
 
-import com.alanpatrik.sghss.api.dto.response.ProntuarioResponseDTO;
+import com.alanpatrik.sghss.api.model.dto.response.ProntuarioResponseDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

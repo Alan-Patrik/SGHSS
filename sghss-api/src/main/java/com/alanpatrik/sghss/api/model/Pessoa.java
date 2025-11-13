@@ -39,11 +39,11 @@ public abstract class Pessoa {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Column(name = "DATA_CRIACAO", nullable = false)
-    private LocalDateTime dataCriacao;
+    protected LocalDateTime dataCriacao;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Column(name = "DATA_MODIFICACAO", nullable = false)
-    private LocalDateTime dataModificacao;
+    protected LocalDateTime dataModificacao;
 
 }

@@ -1,4 +1,4 @@
-package com.alanpatrik.sghss.api.dto.request;
+package com.alanpatrik.sghss.api.model.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,11 +9,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class PrescricaoRequestDTO {
+public class PrescricaoResponseDTO {
+    private Long id;
     private String medicamento;
     private String observacao;
     private String dosagem;
     private String duracao;
-    private Long idProntuario;
 
 }

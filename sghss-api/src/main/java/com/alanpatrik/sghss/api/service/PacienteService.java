@@ -1,12 +1,14 @@
 package com.alanpatrik.sghss.api.service;
 
 import com.alanpatrik.sghss.api.comum.Constantes;
-import com.alanpatrik.sghss.api.dto.request.PacienteRequestDTO;
-import com.alanpatrik.sghss.api.dto.response.PacienteResponseDTO;
+import com.alanpatrik.sghss.api.exception.ConflitoException;
 import com.alanpatrik.sghss.api.exception.InformacaoNaoEncontradaException;
 import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
 import com.alanpatrik.sghss.api.model.Endereco;
 import com.alanpatrik.sghss.api.model.Paciente;
+import com.alanpatrik.sghss.api.model.dto.request.PacienteRequestDTO;
+import com.alanpatrik.sghss.api.model.dto.response.HistoricoPacienteResponseDTO;
+import com.alanpatrik.sghss.api.model.dto.response.PacienteResponseDTO;
 import com.alanpatrik.sghss.api.repository.PacienteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,8 +35,10 @@ public class PacienteService {
         return pacienteRepository.findByNome(nome).orElseThrow(() -> new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
     }
 
-    public PacienteResponseDTO findByHistoricoClinico(Long id) {
-        return Paciente.toResponseDTO(pacienteRepository.findByHistoricoClinico(id));
+    public HistoricoPacienteResponseDTO findByHistoricoClinico(Long id) {
+        var paciente = pacienteRepository.findByHistoricoClinico(id).orElseThrow(
+                () -> new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
+        return Paciente.toHistoricoPacienteResponseDTO(paciente);
     }
 
     private boolean verifyIfExistsByName(String nome) {
@@ -45,7 +49,7 @@ public class PacienteService {
         this.validarParametrosObrigatorios(pacienteRequestDTO);
 
         if (verifyIfExistsByName(pacienteRequestDTO.getNome())) {
-            throw new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE);
+            throw new ConflitoException(Constantes.CONFLICT_MESSAGE);
         }
 
         var enderecoPaciente = pacienteRequestDTO.getEndereco();

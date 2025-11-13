@@ -17,6 +17,6 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
     @Query(value = "SELECT pa.* FROM paciente pa " +
             "LEFT JOIN prontuario pr ON pr.id_paciente = pa.id_paciente " +
             "WHERE pa.id_paciente = :id", nativeQuery = true)
-    Paciente findByHistoricoClinico(@Param("id") Long id);
+    Optional<Paciente> findByHistoricoClinico(@Param("id") Long id);
 
 }

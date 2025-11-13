@@ -1,6 +1,6 @@
 package com.alanpatrik.sghss.api.model;
 
-import com.alanpatrik.sghss.api.dto.response.PrescricaoResponseDTO;
+import com.alanpatrik.sghss.api.model.dto.response.PrescricaoResponseDTO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -62,7 +62,6 @@ public class Prescricao {
         var prescricoes = new ArrayList<Prescricao>();
         for (PrescricaoResponseDTO prescricaoDTO : prescricaoDTOList) {
             var prescricao = toEntity(prescricaoDTO);
-
             prescricoes.add(prescricao);
         }
         return prescricoes;

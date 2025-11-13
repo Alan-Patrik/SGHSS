@@ -1,9 +1,10 @@
 package com.alanpatrik.sghss.api.controller;
 
 import com.alanpatrik.sghss.api.comum.Constantes;
-import com.alanpatrik.sghss.api.dto.request.PacienteRequestDTO;
-import com.alanpatrik.sghss.api.dto.response.PacienteResponseDTO;
-import com.alanpatrik.sghss.api.model.ErroDTO;
+import com.alanpatrik.sghss.api.model.dto.ErroDTO;
+import com.alanpatrik.sghss.api.model.dto.request.PacienteRequestDTO;
+import com.alanpatrik.sghss.api.model.dto.response.HistoricoPacienteResponseDTO;
+import com.alanpatrik.sghss.api.model.dto.response.PacienteResponseDTO;
 import com.alanpatrik.sghss.api.service.PacienteService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -47,6 +48,21 @@ public class PacienteController {
         return ResponseEntity
                 .status(HttpStatus.OK.value())
                 .body(pacienteService.findById(id));
+    }
+
+
+    @GetMapping("/historico-paciente/{id}")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
+    })
+    public ResponseEntity<HistoricoPacienteResponseDTO> getByHistoricoClinicoPaciente(
+            @Parameter(example = "id", description = "Id do prontuário do paciente cadastrado", required = true) @PathVariable(name = "id") Long id
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.OK.value())
+                .body(pacienteService.findByHistoricoClinico(id));
     }
 
     @PostMapping
