@@ -1,5 +1,6 @@
 package com.alanpatrik.sghss.api.model;
 
+import com.alanpatrik.sghss.api.model.dto.response.LeitoResponseDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,4 +22,20 @@ public class Leito {
 
     @ManyToOne
     private UnidadeSaude unidadeSaude;
+
+    public static LeitoResponseDTO toResponseDTO(Leito leito) {
+        var leitoResponseDTO = new LeitoResponseDTO();
+        leitoResponseDTO.setId(leito.getId());
+        leitoResponseDTO.setNumero(leito.getNumero());
+        leitoResponseDTO.setUnidadeSaude(leito.getUnidadeSaude());
+        return leitoResponseDTO;
+    }
+
+    public static Leito toEntity(LeitoResponseDTO leitoResponseDTO) {
+        var leito = new Leito();
+        leito.setId(leitoResponseDTO.getId());
+        leito.setNumero(leitoResponseDTO.getNumero());
+        leito.setUnidadeSaude(leitoResponseDTO.getUnidadeSaude());
+        return leito;
+    }
 }

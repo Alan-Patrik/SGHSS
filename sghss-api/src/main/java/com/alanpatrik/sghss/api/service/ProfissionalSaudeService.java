@@ -42,10 +42,18 @@ public class ProfissionalSaudeService {
         return profissionalSaudeRepository.existsProfissionalSaudeByNome((nome));
     }
 
+    private boolean verifyIfExistsByCRM(String CRM) {
+        return profissionalSaudeRepository.existsProfissionalSaudeByCRM((CRM));
+    }
+
     public ProfissionalSaudeResponseDTO save(ProfissionalSaudeRequestDTO profissionalSaudeRequestDTO) {
         this.validarParametrosObrigatorios(profissionalSaudeRequestDTO);
 
         if (verifyIfExistsByName(profissionalSaudeRequestDTO.getNome())) {
+            throw new ConflitoException(Constantes.CONFLICT_MESSAGE);
+        }
+
+        if (verifyIfExistsByCRM(profissionalSaudeRequestDTO.getCRM())) {
             throw new ConflitoException(Constantes.CONFLICT_MESSAGE);
         }
 
@@ -107,6 +115,18 @@ public class ProfissionalSaudeService {
 
         profissionalSaude = profissionalSaudeRepository.save(profissionalSaude);
         return ProfissionalSaude.toResponseDTO(profissionalSaude);
+    }
+
+    public void addUnidadeSaude(String CRM, UnidadeSaude unidadeSaude) {
+        var profissionalSaude = this.findByCRM(CRM);
+        profissionalSaude.setUnidadeSaude(unidadeSaude);
+        profissionalSaudeRepository.save(profissionalSaude);
+    }
+
+    public void removeUnidadeSaude(String CRM) {
+        var profissionalSaude = this.findByCRM(CRM);
+        profissionalSaude.setUnidadeSaude(null);
+        profissionalSaudeRepository.save(profissionalSaude);
     }
 
     private void validarParametrosObrigatorios(ProfissionalSaudeRequestDTO profissionalSaudeRequestDTO) {

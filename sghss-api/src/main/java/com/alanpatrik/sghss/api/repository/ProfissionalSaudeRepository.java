@@ -10,6 +10,8 @@ import java.util.Optional;
 public interface ProfissionalSaudeRepository extends JpaRepository<ProfissionalSaude, Long> {
     boolean existsProfissionalSaudeByNome(String nome);
 
+    boolean existsProfissionalSaudeByCRM(String nome);
+
     Optional<ProfissionalSaude> findByCRM(String nome);
 
 }
