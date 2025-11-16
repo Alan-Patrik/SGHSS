@@ -80,7 +80,8 @@ public class ConsultaService {
     }
 
     public void delete(Long id) {
-        consultaRepository.deleteById(id);
+        var consulta = this.findById(id);
+        consultaRepository.deleteById(consulta.getId());
     }
 
     private void validarParametrosObrigatorios(ConsultaRequestDTO consultaRequestDTO) {

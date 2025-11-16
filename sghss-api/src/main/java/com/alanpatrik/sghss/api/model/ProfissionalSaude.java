@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
@@ -41,6 +42,9 @@ public class ProfissionalSaude extends Pessoa {
     @JsonIgnore
     private Agenda agenda;
 
+    @ManyToOne
+    private UnidadeSaude unidadeSaude;
+
     public ProfissionalSaude(
             String nome,
             String cpf,
@@ -54,13 +58,15 @@ public class ProfissionalSaude extends Pessoa {
             AreaAtuacao areaAtuacao,
             List<Consulta> consultas,
             String CRM,
-            Agenda agenda) {
+            Agenda agenda,
+            UnidadeSaude unidadeSaude) {
         super(nome, cpf, dataNascimento, telefone, email, endereco, dataCriacao, dataModificacao);
         this.especialidade = especialidade;
         this.areaAtuacao = areaAtuacao;
         this.consultas = consultas;
         this.CRM = CRM;
         this.agenda = agenda;
+        this.unidadeSaude = unidadeSaude;
     }
 
     public static ProfissionalSaudeResponseDTO toResponseDTO(ProfissionalSaude profissionalSaude) {
@@ -78,6 +84,7 @@ public class ProfissionalSaude extends Pessoa {
         profissionalSaudeResponseDTO.setAreaAtuacao(profissionalSaude.getAreaAtuacao());
         profissionalSaudeResponseDTO.setConsultas(Consulta.responseToDTOList(profissionalSaude.getConsultas()));
         profissionalSaudeResponseDTO.setCRM(profissionalSaude.getCRM());
+        profissionalSaudeResponseDTO.setUnidadeSaude(profissionalSaude.getUnidadeSaude());
         return profissionalSaudeResponseDTO;
     }
 
@@ -96,7 +103,26 @@ public class ProfissionalSaude extends Pessoa {
         profissionalSaude.setAreaAtuacao(profissionalSaudeResponseDTO.getAreaAtuacao());
         profissionalSaude.setConsultas(profissionalSaude.getConsultas());
         profissionalSaude.setCRM(profissionalSaudeResponseDTO.getCRM());
+        profissionalSaude.setUnidadeSaude(profissionalSaudeResponseDTO.getUnidadeSaude());
         return profissionalSaude;
+    }
+
+    public static List<ProfissionalSaudeResponseDTO> responseToResponseDTOList(List<ProfissionalSaude> profissionalSaudeList) {
+        var profissionalSaudeResponseDTOList = new ArrayList<ProfissionalSaudeResponseDTO>();
+        for (var profissionalSaude : profissionalSaudeList) {
+            var profissionalSaudeResponseDTO = toResponseDTO(profissionalSaude);
+            profissionalSaudeResponseDTOList.add(profissionalSaudeResponseDTO);
+        }
+        return profissionalSaudeResponseDTOList;
+    }
+
+    public static List<ProfissionalSaude> responseToEntityList(List<ProfissionalSaudeResponseDTO> profissionalSaudeResponseDTOList) {
+        var profissionalSaudeList = new ArrayList<ProfissionalSaude>();
+        for (var profissionalSaudeResponseDTO : profissionalSaudeResponseDTOList) {
+            var profissionalSaude = toEntity(profissionalSaudeResponseDTO);
+            profissionalSaudeList.add(profissionalSaude);
+        }
+        return profissionalSaudeList;
     }
 //
 //    public void atualizarProntuario() {

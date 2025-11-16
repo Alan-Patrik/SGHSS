@@ -6,6 +6,7 @@ import com.alanpatrik.sghss.api.exception.InformacaoNaoEncontradaException;
 import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
 import com.alanpatrik.sghss.api.model.Endereco;
 import com.alanpatrik.sghss.api.model.ProfissionalSaude;
+import com.alanpatrik.sghss.api.model.UnidadeSaude;
 import com.alanpatrik.sghss.api.model.dto.request.ProfissionalSaudeRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.response.ProfissionalSaudeResponseDTO;
 import com.alanpatrik.sghss.api.repository.ProfissionalSaudeRepository;
@@ -72,6 +73,7 @@ public class ProfissionalSaudeService {
                 profissionalSaudeRequestDTO.getAreaAtuacao(),
                 new ArrayList<>(),
                 profissionalSaudeRequestDTO.getCRM(),
+                null,
                 null);
 
         profissionalSaude = profissionalSaudeRepository.save(profissionalSaude);

@@ -1,6 +1,7 @@
 package com.alanpatrik.sghss.api.model.dto.response;
 
 import com.alanpatrik.sghss.api.model.Endereco;
+import com.alanpatrik.sghss.api.model.UnidadeSaude;
 import com.alanpatrik.sghss.api.model.enums.AreaAtuacao;
 import com.alanpatrik.sghss.api.model.enums.Especialidade;
 import lombok.AllArgsConstructor;
@@ -29,4 +30,5 @@ public class ProfissionalSaudeResponseDTO {
     private AreaAtuacao areaAtuacao;
     private List<ConsultaResponseDTO> consultas;
     private String CRM;
+    private UnidadeSaude unidadeSaude;
 }
