@@ -1,12 +1,15 @@
 package com.alanpatrik.sghss.api.model;
 
-import com.alanpatrik.sghss.api.dto.response.PacienteResponseDTO;
+import com.alanpatrik.sghss.api.model.dto.response.HistoricoPacienteResponseDTO;
+import com.alanpatrik.sghss.api.model.dto.response.PacienteResponseDTO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @NoArgsConstructor
 @Getter
@@ -21,6 +24,10 @@ public class Paciente extends Pessoa {
 
     @OneToOne(mappedBy = "paciente")
     private Prontuario prontuario;
+
+    @OneToMany(mappedBy = "paciente")
+    @JsonIgnore
+    private List<Consulta> consultas;
 
     public Paciente(
             String nome,
@@ -49,6 +56,21 @@ public class Paciente extends Pessoa {
         pacienteResponseDTO.setDataCriacao(paciente.getDataCriacao());
         pacienteResponseDTO.setDataModificacao(paciente.getDataModificacao());
         return pacienteResponseDTO;
+    }
+
+    public static HistoricoPacienteResponseDTO toHistoricoPacienteResponseDTO(Paciente paciente) {
+        var historicoPacienteResponseDTO = new HistoricoPacienteResponseDTO();
+        historicoPacienteResponseDTO.setId(paciente.getId());
+        historicoPacienteResponseDTO.setNome(paciente.getNome());
+        historicoPacienteResponseDTO.setCpf(paciente.getCpf());
+        historicoPacienteResponseDTO.setDataNascimento(paciente.getDataNascimento());
+        historicoPacienteResponseDTO.setTelefone(paciente.getTelefone());
+        historicoPacienteResponseDTO.setEmail(paciente.getEmail());
+        historicoPacienteResponseDTO.setEndereco(paciente.getEndereco());
+        historicoPacienteResponseDTO.setDataCriacao(paciente.getDataCriacao());
+        historicoPacienteResponseDTO.setDataModificacao(paciente.getDataModificacao());
+        historicoPacienteResponseDTO.setProntuario(paciente.getProntuario());
+        return historicoPacienteResponseDTO;
     }
 
     public static Paciente toEntity(PacienteResponseDTO pacienteResponseDTO) {

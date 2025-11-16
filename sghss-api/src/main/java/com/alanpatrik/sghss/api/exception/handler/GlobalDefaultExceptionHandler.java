@@ -3,7 +3,7 @@ package com.alanpatrik.sghss.api.exception.handler;
 import com.alanpatrik.sghss.api.exception.ConflitoException;
 import com.alanpatrik.sghss.api.exception.InformacaoNaoEncontradaException;
 import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
-import com.alanpatrik.sghss.api.model.ErroDTO;
+import com.alanpatrik.sghss.api.model.dto.ErroDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.alanpatrik.sghss.api.dto.request;
+package com.alanpatrik.sghss.api.model.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

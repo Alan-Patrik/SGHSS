@@ -1,6 +1,9 @@
-package com.alanpatrik.sghss.api.dto.response;
+package com.alanpatrik.sghss.api.model.dto.request;
 
 import com.alanpatrik.sghss.api.model.Endereco;
+import com.alanpatrik.sghss.api.model.UnidadeSaude;
+import com.alanpatrik.sghss.api.model.enums.AreaAtuacao;
+import com.alanpatrik.sghss.api.model.enums.Especialidade;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,17 +13,18 @@ import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
 @Getter
-public class PacienteResponseDTO {
-    private Long id;
+@Setter
+public class ProfissionalSaudeRequestDTO {
     private String nome;
     private String cpf;
     private String dataNascimento;
-    private Endereco endereco;
     private String telefone;
     private String email;
+    private Endereco endereco;
     private LocalDateTime dataCriacao;
     private LocalDateTime dataModificacao;
-
+    private Especialidade especialidade;
+    private AreaAtuacao areaAtuacao;
+    private String CRM;
 }
