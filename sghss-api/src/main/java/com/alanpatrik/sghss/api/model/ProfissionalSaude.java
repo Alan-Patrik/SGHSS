@@ -31,7 +31,7 @@ public class ProfissionalSaude extends Pessoa {
     @Column(name = "AREA_ATUACAO", nullable = false)
     private AreaAtuacao areaAtuacao;
 
-    @Column(name = "TXT_CRM", nullable = false)
+    @Column(name = "TXT_CRM", nullable = false, unique = true)
     private String CRM;
 
     @OneToMany(mappedBy = "profissionalSaude")
@@ -43,6 +43,7 @@ public class ProfissionalSaude extends Pessoa {
     private Agenda agenda;
 
     @ManyToOne
+    @JsonIgnore
     private UnidadeSaude unidadeSaude;
 
     public ProfissionalSaude(
@@ -84,7 +85,6 @@ public class ProfissionalSaude extends Pessoa {
         profissionalSaudeResponseDTO.setAreaAtuacao(profissionalSaude.getAreaAtuacao());
         profissionalSaudeResponseDTO.setConsultas(Consulta.responseToDTOList(profissionalSaude.getConsultas()));
         profissionalSaudeResponseDTO.setCRM(profissionalSaude.getCRM());
-        profissionalSaudeResponseDTO.setUnidadeSaude(profissionalSaude.getUnidadeSaude());
         return profissionalSaudeResponseDTO;
     }
 
@@ -103,26 +103,23 @@ public class ProfissionalSaude extends Pessoa {
         profissionalSaude.setAreaAtuacao(profissionalSaudeResponseDTO.getAreaAtuacao());
         profissionalSaude.setConsultas(profissionalSaude.getConsultas());
         profissionalSaude.setCRM(profissionalSaudeResponseDTO.getCRM());
-        profissionalSaude.setUnidadeSaude(profissionalSaudeResponseDTO.getUnidadeSaude());
         return profissionalSaude;
     }
 
-    public static List<ProfissionalSaudeResponseDTO> responseToResponseDTOList(List<ProfissionalSaude> profissionalSaudeList) {
-        var profissionalSaudeResponseDTOList = new ArrayList<ProfissionalSaudeResponseDTO>();
-        for (var profissionalSaude : profissionalSaudeList) {
-            var profissionalSaudeResponseDTO = toResponseDTO(profissionalSaude);
-            profissionalSaudeResponseDTOList.add(profissionalSaudeResponseDTO);
+    public static List<ProfissionalSaudeResponseDTO> toResponseDTOList(List<ProfissionalSaude> profissionaisSaude) {
+        var profissionaisSaudeResponseDTO = new ArrayList<ProfissionalSaudeResponseDTO>();
+        for (var profissionalSaude : profissionaisSaude) {
+            profissionaisSaudeResponseDTO.add(toResponseDTO(profissionalSaude));
         }
-        return profissionalSaudeResponseDTOList;
+        return profissionaisSaudeResponseDTO;
     }
 
-    public static List<ProfissionalSaude> responseToEntityList(List<ProfissionalSaudeResponseDTO> profissionalSaudeResponseDTOList) {
-        var profissionalSaudeList = new ArrayList<ProfissionalSaude>();
-        for (var profissionalSaudeResponseDTO : profissionalSaudeResponseDTOList) {
-            var profissionalSaude = toEntity(profissionalSaudeResponseDTO);
-            profissionalSaudeList.add(profissionalSaude);
+    public static List<ProfissionalSaude> toEntityList(List<ProfissionalSaudeResponseDTO> profissionaisSaudeDTO) {
+        var profissionaisSaude = new ArrayList<ProfissionalSaude>();
+        for (var profissionalSaudeDTO : profissionaisSaudeDTO) {
+            profissionaisSaude.add(ProfissionalSaude.toEntity(profissionalSaudeDTO));
         }
-        return profissionalSaudeList;
+        return profissionaisSaude;
     }
 //
 //    public void atualizarProntuario() {

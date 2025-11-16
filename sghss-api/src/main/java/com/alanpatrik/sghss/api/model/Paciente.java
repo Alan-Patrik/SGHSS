@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
@@ -85,6 +86,22 @@ public class Paciente extends Pessoa {
         paciente.setDataCriacao(pacienteResponseDTO.getDataCriacao());
         paciente.setDataModificacao(pacienteResponseDTO.getDataModificacao());
         return paciente;
+    }
+
+    public static List<PacienteResponseDTO> toResponseDTOList(List<Paciente> pacientes) {
+        var pacienteResponseDTOs = new ArrayList<PacienteResponseDTO>();
+        for (Paciente paciente : pacientes) {
+            pacienteResponseDTOs.add(toResponseDTO(paciente));
+        }
+        return pacienteResponseDTOs;
+    }
+
+    public static List<Paciente> toEntityList(List<PacienteResponseDTO> pacienteResponseDTOs) {
+        var pacientes = new ArrayList<Paciente>();
+        for (var pacienteResponseDTO : pacienteResponseDTOs) {
+            pacientes.add(toEntity(pacienteResponseDTO));
+        }
+        return pacientes;
     }
 
 //    public Consulta agendarConsulta(Consulta consulta) {
