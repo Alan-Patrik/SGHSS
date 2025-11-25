@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 public class HorarioDisponivelDTO {
+
     @Enumerated(EnumType.STRING)
     private StatusHorario status;
     private LocalDateTime horarioDisponivel;

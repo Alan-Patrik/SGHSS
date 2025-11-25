@@ -1,7 +1,6 @@
 package com.alanpatrik.sghss.api.model;
 
 import com.alanpatrik.sghss.api.model.dto.response.LeitoResponseDTO;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 

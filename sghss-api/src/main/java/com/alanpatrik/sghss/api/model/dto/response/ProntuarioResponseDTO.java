@@ -13,11 +13,11 @@ import java.util.List;
 @Setter
 @Getter
 public class ProntuarioResponseDTO {
+
     private Long id;
     private String observacao;
     private String nomePaciente;
     private LocalDateTime dataCriacao;
     private LocalDateTime dataModificacao;
     private List<PrescricaoResponseDTO> prescricoes;
-
 }

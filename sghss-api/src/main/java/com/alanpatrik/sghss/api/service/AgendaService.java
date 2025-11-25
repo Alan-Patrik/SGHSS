@@ -12,6 +12,8 @@ import com.alanpatrik.sghss.api.model.enums.StatusHorario;
 import com.alanpatrik.sghss.api.repository.AgendaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -42,6 +44,7 @@ public class AgendaService {
         return Agenda.toResponseDTO(agenda);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AgendaResponseDTO save(AgendaRequestDTO agendaRequestDTO) {
         this.validarParametrosObrigatorios(agendaRequestDTO);
 
@@ -67,6 +70,7 @@ public class AgendaService {
         return Agenda.toResponseDTO(agendaRepository.save(agenda));
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AgendaResponseDTO addTime(Long id, LocalDateTime dataHoraNovaConsulta) {
         this.validarParametrosObrigatorios(id, dataHoraNovaConsulta);
         var agendaResponseDTO = this.findById(id);
@@ -102,6 +106,7 @@ public class AgendaService {
         return Agenda.toResponseDTO(agenda);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AgendaResponseDTO updateTime(Long id, LocalDateTime dataHoraConsultaAntiga, LocalDateTime dataHoraNovaConsulta) {
         this.validarParametrosObrigatorios(id, dataHoraNovaConsulta);
         var agendaResponseDTO = this.findById(id);
@@ -152,14 +157,18 @@ public class AgendaService {
         return Agenda.toResponseDTO(agenda);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void schedule(Long id, LocalDateTime dataHoraConsulta) {
         this.validarParametrosObrigatorios(id, dataHoraConsulta);
-        var agendaResponseDTO = this.findById(id);
+        var agenda = Agenda.toEntity(this.findById(id));
 
         var containsHorario = false;
         var horarioDTO = new HorarioDisponivelDTO();
         var horariosDisponiveis = new ArrayList<HorarioDisponivelDTO>();
-        for (var horario : agendaResponseDTO.getHorariosDisponiveis()) {
+        if (agenda.getHorariosDisponiveis().isEmpty()) {
+            throw new InformacaoNaoEncontradaException("A agenda do profissional de saúde não possui horários disponíveis.");
+        }
+        for (var horario : agenda.getHorariosDisponiveis()) {
             if (horario.getHorarioDisponivel().equals(dataHoraConsulta) &&
                     horario.getStatus().equals(StatusHorario.D)) {
                 horariosDisponiveis.remove(horario);
@@ -180,9 +189,9 @@ public class AgendaService {
         var listaOrdenada = horariosDisponiveis.stream()
                 .sorted(Comparator.comparing(h -> h.getHorarioDisponivel().toLocalTime()))
                 .toList();
-        agendaResponseDTO.setHorariosDisponiveis(listaOrdenada);
+        agenda.setHorariosDisponiveis(listaOrdenada);
 
-        agendaRepository.save(Agenda.toEntity(agendaResponseDTO));
+        agendaRepository.save(agenda);
     }
 
     public void deleteTime(Long id, LocalDateTime dataHoraConsulta) {

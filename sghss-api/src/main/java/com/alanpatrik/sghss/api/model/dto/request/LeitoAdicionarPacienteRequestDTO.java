@@ -8,6 +8,7 @@ import lombok.*;
 @Getter
 @Setter
 public class LeitoAdicionarPacienteRequestDTO {
+
     private String numeroLeito;
     private String nomePaciente;
 }

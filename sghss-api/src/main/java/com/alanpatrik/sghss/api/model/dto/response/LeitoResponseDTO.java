@@ -11,6 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 public class LeitoResponseDTO {
+
     private Long id;
     private String numero;
     private UnidadeSaude unidadeSaude;

@@ -1,9 +1,9 @@
 package com.alanpatrik.sghss.api.controller;
 
 import com.alanpatrik.sghss.api.comum.Constantes;
+import com.alanpatrik.sghss.api.model.dto.ErroDTO;
 import com.alanpatrik.sghss.api.model.dto.request.PrescricaoRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.response.PrescricaoResponseDTO;
-import com.alanpatrik.sghss.api.model.dto.ErroDTO;
 import com.alanpatrik.sghss.api.service.PrescricaoService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

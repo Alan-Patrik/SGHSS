@@ -34,10 +34,9 @@ public class UnidadeSaudeService {
         return UnidadeSaude.toResponseDTO(unidadeSaudeResponseDTO);
     }
 
-    public UnidadeSaudeResponseDTO findByName(String nome) {
-        var unidadeSaudeResponseDTO = unidadeSaudeRepository.findByNome(nome).orElseThrow(() ->
+    public UnidadeSaude findByName(String nome) {
+        return unidadeSaudeRepository.findByNome(nome).orElseThrow(() ->
                 new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
-        return UnidadeSaude.toResponseDTO(unidadeSaudeResponseDTO);
     }
 
     public UnidadeSaudeResponseDTO save(UnidadeSaudeRequestDTO unidadeSaudeRequestDTO) {
@@ -71,7 +70,7 @@ public class UnidadeSaudeService {
     public UnidadeSaudeResponseDTO addProfissionalSaude(UnidadeSaudeAdicionarProfissionalRequestDTO unidadeSaudeAdicionarProfissionalRequestDTO) {
         this.validarParametrosObrigatorios(unidadeSaudeAdicionarProfissionalRequestDTO);
 
-        var unidadeSaude = UnidadeSaude.toEntity(this.findByName(unidadeSaudeAdicionarProfissionalRequestDTO.getNomeUnidadeSaude()));
+        var unidadeSaude = this.findByName(unidadeSaudeAdicionarProfissionalRequestDTO.getNomeUnidadeSaude());
         var profissionalSaude = profissionalSaudeService.findByCRM(unidadeSaudeAdicionarProfissionalRequestDTO.getCRM());
 
         var profissionaisSaude = new ArrayList<ProfissionalSaude>();
@@ -97,7 +96,7 @@ public class UnidadeSaudeService {
             throw new ParametroInvalidoException("O campo Nome da Unidade de Saúde é obrigatório.");
         }
 
-        var unidadeSaude = UnidadeSaude.toEntity(this.findByName(nomeUnidadeSaude));
+        var unidadeSaude = this.findByName(nomeUnidadeSaude);
         var profissionalSaude = profissionalSaudeService.findByCRM(crm);
 
         var profissionaisSaude = new ArrayList<ProfissionalSaude>();

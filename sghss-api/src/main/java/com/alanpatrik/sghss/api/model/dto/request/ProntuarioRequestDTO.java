@@ -10,6 +10,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class ProntuarioRequestDTO {
+
     private String observacao;
     private String nomePaciente;
 

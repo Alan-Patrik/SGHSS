@@ -7,7 +7,6 @@ import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
 import com.alanpatrik.sghss.api.model.Leito;
 import com.alanpatrik.sghss.api.model.Paciente;
 import com.alanpatrik.sghss.api.model.ProfissionalSaude;
-import com.alanpatrik.sghss.api.model.UnidadeSaude;
 import com.alanpatrik.sghss.api.model.dto.request.LeitoAdicionarPacienteRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.request.LeitoAdicionarProfissionalRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.request.LeitoRequestDTO;
@@ -52,7 +51,7 @@ public class LeitoService {
         var unidadeSaude = unidadeSaudeService.findByName(leitoRequestDTO.getNomeUnidadeSaude());
         var leito = Leito.builder()
                 .numero(leitoRequestDTO.getNumero())
-                .unidadeSaude(UnidadeSaude.toEntity(unidadeSaude))
+                .unidadeSaude(unidadeSaude)
                 .pacientes(new ArrayList<>())
                 .profissionaisSaude(new ArrayList<>())
                 .build();

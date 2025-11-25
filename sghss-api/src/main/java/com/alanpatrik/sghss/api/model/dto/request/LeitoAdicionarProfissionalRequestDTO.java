@@ -8,6 +8,7 @@ import lombok.*;
 @Getter
 @Setter
 public class LeitoAdicionarProfissionalRequestDTO {
+
     private String numeroLeito;
     private String CRM;
 }

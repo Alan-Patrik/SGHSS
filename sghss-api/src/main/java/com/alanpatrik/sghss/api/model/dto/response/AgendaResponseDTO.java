@@ -14,6 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 public class AgendaResponseDTO {
+
     private Long id;
     private ProfissionalSaude profissionalSaude;
     private List<HorarioDisponivelDTO> horariosDisponiveis;

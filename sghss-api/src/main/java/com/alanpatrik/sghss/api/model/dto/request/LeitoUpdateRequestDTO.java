@@ -8,5 +8,6 @@ import lombok.*;
 @Getter
 @Setter
 public class LeitoUpdateRequestDTO {
+
     private String numero;
 }
