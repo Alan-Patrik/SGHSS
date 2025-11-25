@@ -1,12 +1,12 @@
 package com.alanpatrik.sghss.api.service;
 
 import com.alanpatrik.sghss.api.comum.Constantes;
-import com.alanpatrik.sghss.api.model.dto.request.ProntuarioRequestDTO;
-import com.alanpatrik.sghss.api.model.dto.response.ProntuarioResponseDTO;
 import com.alanpatrik.sghss.api.exception.ConflitoException;
 import com.alanpatrik.sghss.api.exception.InformacaoNaoEncontradaException;
 import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
 import com.alanpatrik.sghss.api.model.Prontuario;
+import com.alanpatrik.sghss.api.model.dto.request.ProntuarioRequestDTO;
+import com.alanpatrik.sghss.api.model.dto.response.ProntuarioResponseDTO;
 import com.alanpatrik.sghss.api.repository.ProntuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

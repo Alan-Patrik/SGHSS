@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
@@ -103,6 +104,22 @@ public class ProfissionalSaude extends Pessoa {
         profissionalSaude.setConsultas(profissionalSaude.getConsultas());
         profissionalSaude.setCRM(profissionalSaudeResponseDTO.getCRM());
         return profissionalSaude;
+    }
+
+    public static List<ProfissionalSaudeResponseDTO> toResponseDTOList(List<ProfissionalSaude> profissionaisSaude) {
+        var profissionaisSaudeResponseDTO = new ArrayList<ProfissionalSaudeResponseDTO>();
+        for (var profissionalSaude : profissionaisSaude) {
+            profissionaisSaudeResponseDTO.add(toResponseDTO(profissionalSaude));
+        }
+        return profissionaisSaudeResponseDTO;
+    }
+
+    public static List<ProfissionalSaude> toEntityList(List<ProfissionalSaudeResponseDTO> profissionaisSaudeDTO) {
+        var profissionaisSaude = new ArrayList<ProfissionalSaude>();
+        for (var profissionalSaudeDTO : profissionaisSaudeDTO) {
+            profissionaisSaude.add(ProfissionalSaude.toEntity(profissionalSaudeDTO));
+        }
+        return profissionaisSaude;
     }
 //
 //    public void atualizarProntuario() {

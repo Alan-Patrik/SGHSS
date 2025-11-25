@@ -7,7 +7,8 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
-public class LeitoUpdateRequestDTO {
+public class LeitoAdicionarPacienteRequestDTO {
 
-    private String numero;
+    private String numeroLeito;
+    private String nomePaciente;
 }

@@ -11,6 +11,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class PacienteRequestDTO {
+
     private String nome;
     private String cpf;
     private String dataNascimento;

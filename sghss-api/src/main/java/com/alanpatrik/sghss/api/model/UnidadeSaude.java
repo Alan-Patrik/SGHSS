@@ -1,6 +1,7 @@
 package com.alanpatrik.sghss.api.model;
 
 import com.alanpatrik.sghss.api.model.dto.response.UnidadeSaudeResponseDTO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,9 +26,11 @@ public class UnidadeSaude {
     @Embedded
     private Endereco endereco;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "unidadeSaude")
     private List<Leito> leitos;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "unidadeSaude")
     private List<ProfissionalSaude> profissionais;
 

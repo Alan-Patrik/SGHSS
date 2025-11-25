@@ -94,7 +94,7 @@ public class AgendaController {
             @ApiResponse(responseCode = "409", description = Constantes.CONFLICT_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity schedule(
+    public ResponseEntity<AgendaResponseDTO> schedule(
             @Parameter(example = "id", description = "Id da agenda cadastrada", required = true) @PathVariable(name = "id") Long id,
             @Parameter(example = "dataHoraConsulta", description = "Data e hora da consulta", required = true, name = "dataHoraConsulta") @RequestParam LocalDateTime dataHoraConsulta
     ) {

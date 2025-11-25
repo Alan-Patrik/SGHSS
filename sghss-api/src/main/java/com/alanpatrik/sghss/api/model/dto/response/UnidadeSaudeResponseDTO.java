@@ -13,6 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 public class UnidadeSaudeResponseDTO {
+
     private Long id;
     private String nome;
     private Endereco endereco;

@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class ConsultaUpdateRequestDTO {
+
     private LocalDateTime dataHoraConsultaAntiga;
     private LocalDateTime dataHoraNovaConsulta;
     private AreaAtuacao areaAtuacao;

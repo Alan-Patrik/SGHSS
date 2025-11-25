@@ -9,6 +9,7 @@ import lombok.*;
 @Getter
 @Setter
 public class UnidadeSaudeRequestDTO {
+
     private String nome;
     private Endereco endereco;
 }

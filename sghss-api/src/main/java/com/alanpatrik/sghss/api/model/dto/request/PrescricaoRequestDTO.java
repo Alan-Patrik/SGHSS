@@ -10,6 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PrescricaoRequestDTO {
+
     private String medicamento;
     private String observacao;
     private String dosagem;

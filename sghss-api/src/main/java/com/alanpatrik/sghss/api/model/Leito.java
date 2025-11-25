@@ -4,6 +4,8 @@ import com.alanpatrik.sghss.api.model.dto.response.LeitoResponseDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,6 +22,14 @@ public class Leito {
     @Column(name = "TXT_NUMERO", nullable = false)
     private String numero;
 
+    @OneToMany
+    @Column(name = "ID_PACIENTE", nullable = false)
+    private List<Paciente> pacientes;
+
+    @OneToMany
+    @Column(name = "ID_PROFISSIONAL_SAUDE", nullable = false)
+    private List<ProfissionalSaude> profissionaisSaude;
+
     @ManyToOne
     private UnidadeSaude unidadeSaude;
 
@@ -28,6 +38,8 @@ public class Leito {
         leitoResponseDTO.setId(leito.getId());
         leitoResponseDTO.setNumero(leito.getNumero());
         leitoResponseDTO.setUnidadeSaude(leito.getUnidadeSaude());
+        leitoResponseDTO.setPacientes(Paciente.toResponseDTOList(leito.getPacientes()));
+        leitoResponseDTO.setProfissionaisSaude(ProfissionalSaude.toResponseDTOList(leito.profissionaisSaude));
         return leitoResponseDTO;
     }
 
@@ -36,6 +48,8 @@ public class Leito {
         leito.setId(leitoResponseDTO.getId());
         leito.setNumero(leitoResponseDTO.getNumero());
         leito.setUnidadeSaude(leitoResponseDTO.getUnidadeSaude());
+        leito.setPacientes(Paciente.toEntityList(leitoResponseDTO.getPacientes()));
+        leito.setProfissionaisSaude(ProfissionalSaude.toEntityList(leitoResponseDTO.getProfissionaisSaude()));
         return leito;
     }
 }

@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class ConsultaResponseDTO {
+
     private Long id;
     private LocalDateTime dataHoraConsulta;
     private AreaAtuacao areaAtuacao;

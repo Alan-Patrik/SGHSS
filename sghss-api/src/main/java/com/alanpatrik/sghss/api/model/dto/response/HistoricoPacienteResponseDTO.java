@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 public class HistoricoPacienteResponseDTO {
+
     private Long id;
     private String nome;
     private String cpf;
