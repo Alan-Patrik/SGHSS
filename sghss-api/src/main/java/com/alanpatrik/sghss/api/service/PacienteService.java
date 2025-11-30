@@ -81,6 +81,11 @@ public class PacienteService {
         return Paciente.toResponseDTO(paciente);
     }
 
+    public void delete(Long id) {
+        var paciente = this.findById(id);
+        pacienteRepository.deleteById(paciente.getId());
+    }
+
     private void validarParametrosObrigatorios(PacienteRequestDTO pacienteRequestDTO) {
         if (pacienteRequestDTO.getNome() == null || pacienteRequestDTO.getNome().isEmpty()) {
             throw new ParametroInvalidoException("O campo Nome é obrigatório.");

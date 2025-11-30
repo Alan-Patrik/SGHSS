@@ -32,7 +32,7 @@ public class PacienteController {
     })
     public ResponseEntity<List<PacienteResponseDTO>> getAll() {
         return ResponseEntity
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
                 .body(pacienteService.findAll());
     }
 
@@ -46,7 +46,7 @@ public class PacienteController {
             @Parameter(example = "id", description = "Id do paciente cadastrado", required = true) @PathVariable(name = "id") Long id
     ) {
         return ResponseEntity
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
                 .body(pacienteService.findById(id));
     }
 
@@ -61,7 +61,7 @@ public class PacienteController {
             @Parameter(example = "id", description = "Id do prontuário do paciente cadastrado", required = true) @PathVariable(name = "id") Long id
     ) {
         return ResponseEntity
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
                 .body(pacienteService.findByHistoricoClinico(id));
     }
 
@@ -76,7 +76,7 @@ public class PacienteController {
             @Parameter(example = "Paciente", description = "Objeto Paciente", required = true, name = "pacienteRequestDTO") @RequestBody PacienteRequestDTO pacienteRequestDTO
     ) {
         return ResponseEntity
-                .status(HttpStatus.CREATED.value())
+                .status(HttpStatus.CREATED)
                 .body(pacienteService.save(pacienteRequestDTO));
     }
 
@@ -92,7 +92,23 @@ public class PacienteController {
             @Parameter(example = "Paciente", description = "Objeto Paciente", required = true, name = "pacienteRequestDTO") @RequestBody PacienteRequestDTO pacienteRequestDTO
     ) {
         return ResponseEntity
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
                 .body(pacienteService.update(id, pacienteRequestDTO));
+    }
+
+    @DeleteMapping("/{id}")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "400", description = Constantes.BAD_REQUEST_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
+    })
+    public ResponseEntity delete(
+            @Parameter(example = "id", description = "Id do paciente cadastrado", required = true) @PathVariable(name = "id") Long id
+    ) {
+        pacienteService.delete(id);
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 }
