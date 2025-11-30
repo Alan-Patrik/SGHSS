@@ -6,117 +6,116 @@ DELETE FROM USUARIO;
 
 
 INSERT INTO ROLE (ID_ROLE, TXT_AUTHORITY)
-VALUES (100, 'SGHSS.SYSTEM.SUPPORT'),
-       (101, 'SGHSS.ADMIN.CLINICA'),
-       (102, 'SGHSS.ADMIN.SISTEMA'),
-       (103, 'SGHSS.MEDICO'),
-       (104, 'SGHSS.ENFERMEIRO'),
-       (105, 'SGHSS.TECNICO'),
-       (106, 'SGHSS.PACIENTE'),
-       (107, 'SGHSS.TELEMEDICINA')
+VALUES (101, 'SGHSS.ADMIN.SISTEMA'),
+       (102, 'SGHSS.MEDICO'),
+       (103, 'SGHSS.ENFERMEIRO'),
+       (104, 'SGHSS.TECNICO'),
+       (105, 'SGHSS.PACIENTE'),
+       (106, 'SGHSS.TELEMEDICINA')
 ;
 
 
 INSERT INTO PRIVILEGIO (ID_PRIVILEGIO, TXT_PRIVILEGIO)
-VALUES (101, 'SGHSS.CADASTRAR_PACIENTE'),
-       (102, 'SGHSS.VISUALIZAR_HISTORICO'),
-       (103, 'SGHSS.ATUALIZAR_PRONTUARIO'),
-       (104, 'SGHSS.EMITIR_RECEITA'),
-       (105, 'SGHSS.GERENCIAR_AGENDAS'),
-       (106, 'SGHSS.AGENDAR_CONSULTA'),
-       (107, 'SGHSS.RECEBER_NOTIFICACOES'),
-       (108, 'SGHSS.ACESSAR_TELECONSULTA'),
-       (109, 'SGHSS.GERENCIAR_CADASTROS'),
-       (110, 'SGHSS.CONTROLAR_INTERNACOES'),
-       (111, 'SGHSS.GERAR_RELATORIOS'),
-       (112, 'SGHSS.GERENCIAR_SEGURANCA')
+VALUES
+(101, 'SGHSS.CADASTRAR_PACIENTE'),
+(102, 'SGHSS.VISUALIZAR_HISTORICO'),
+(103, 'SGHSS.ATUALIZAR_PRONTUARIO'),
+(104, 'SGHSS.EMITIR_RECEITA'),
+(105, 'SGHSS.GERENCIAR_AGENDAS'),
+(106, 'SGHSS.AGENDAR_CONSULTA'),
+(107, 'SGHSS.RECEBER_NOTIFICACOES'),
+(108, 'SGHSS.ACESSAR_TELECONSULTA'),
+(109, 'SGHSS.GERENCIAR_CADASTROS'),
+(110, 'SGHSS.CONTROLAR_INTERNACOES'),
+(111, 'SGHSS.GERAR_RELATORIOS'),
+(112, 'SGHSS.GERENCIAR_SEGURANCA'),
+(113, 'SGHSS.ATUALIZAR_PACIENTE'),
+(114, 'SGHSS.CANCELAR_CONSULTA')
+;
+
+-- ADMIN SISTEMA (101)
+INSERT INTO ROLE_PRIVILEGIO (ID_ROLE, ID_PRIVILEGIO)
+VALUES (101, 101),
+       (101, 102),
+       (101, 103),
+       (101, 104),
+       (101, 105),
+       (101, 106),
+       (101, 107),
+       (101, 108),
+       (101, 109),
+       (101, 110),
+       (101, 111),
+       (101, 112),
+       (101, 113),
+       (101, 114)
 ;
 
 
--- MÉDICO (4)
+-- MÉDICO (102)
+INSERT INTO ROLE_PRIVILEGIO (ID_ROLE, ID_PRIVILEGIO)
+VALUES (102, 102),
+       (102, 103),
+       (102, 104),
+       (102, 105),
+       (102, 108)
+;
+
+
+-- ENFERMEIRO (103)
 INSERT INTO ROLE_PRIVILEGIO (ID_ROLE, ID_PRIVILEGIO)
 VALUES (103, 102),
        (103, 103),
-       (103, 104),
        (103, 105),
        (103, 108)
 ;
 
 
--- ENFERMEIRO (5)
+-- TÉCNICO (104)
 INSERT INTO ROLE_PRIVILEGIO (ID_ROLE, ID_PRIVILEGIO)
 VALUES (104, 102),
-       (104, 103),
-       (104, 105),
-       (104, 108)
+       (104, 103)
 ;
 
 
--- TÉCNICO (6)
+-- PACIENTE (105)
 INSERT INTO ROLE_PRIVILEGIO (ID_ROLE, ID_PRIVILEGIO)
-VALUES (105, 102),
-       (105, 103)
+VALUES (105, 101),
+       (105, 102),
+       (105, 106),
+       (105, 107),
+       (105, 108),
+       (105, 113),
+       (105, 114)
 ;
 
 
--- ADMIN CLÍNICO (2)
+-- TELEMEDICINA (106)
 INSERT INTO ROLE_PRIVILEGIO (ID_ROLE, ID_PRIVILEGIO)
-VALUES (101, 101),
-       (101, 109),
-       (101, 110),
-       (101, 111)
-;
-
-
--- ADMIN SISTEMA (3)
-INSERT INTO ROLE_PRIVILEGIO (ID_ROLE, ID_PRIVILEGIO)
-VALUES (102, 109),
-       (102, 111),
-       (102, 112)
-;
-
-
--- PACIENTE (7)
-INSERT INTO ROLE_PRIVILEGIO (ID_ROLE, ID_PRIVILEGIO)
-VALUES (106, 101),
-       (106, 102),
-       (106, 106),
-       (106, 107),
+VALUES (106, 102),
+       (106, 103),
+       (106, 104),
+       (106, 105),
        (106, 108)
 ;
 
 
--- TELEMEDICINA (8)
-INSERT INTO ROLE_PRIVILEGIO (ID_ROLE, ID_PRIVILEGIO)
-VALUES (107, 102),
-       (107, 103),
-       (107, 104),
-       (107, 105),
-       (107, 108)
-;
-
-
-
 INSERT INTO USUARIO (ID_USUARIO, TXT_USERNAME, TXT_PASSWORD, TXT_EMAIL, DAT_DATA_CRIACAO, DAT_DATA_MODIFICACAO, IND_STATUS)
 VALUES
-(1001, 'admin.support',   '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'admin.support@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true),
-(1002, 'admin.clinica', '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'admin.clinico@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true),
-(1003, 'admin.sistema', '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'admin.sistema@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true),
-(1004, 'medico.01',     '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'medico.01@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true),
-(1005, 'enfermeiro.01', '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'enfermeiro.01@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true),
-(1006, 'tecnico.01',    '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'tecnico.01@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true),
-(1007, 'paciente.01',   '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'paciente.01@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true),
-(1008, 'telemed.01',    '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'telemed.01@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true)
+(1001, 'admin.sistema', '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'admin.sistema@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true),
+(1002, 'medico.01',     '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'medico.01@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true),
+(1003, 'enfermeiro.01', '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'enfermeiro.01@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true),
+(1004, 'tecnico.01',    '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'tecnico.01@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true),
+(1005, 'paciente.01',   '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'paciente.01@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true),
+(1006, 'telemed.01',    '$2a$10$CnI6ZurVq99FwgSOuHzVgOfsuuXx0Icb8rei9SMuL7T1kCRnpmWyy', 'telemed.01@gmail.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true)
 ;
 
 
 INSERT INTO USUARIO_ROLE (USUARIO, ROLE)
-VALUES (1001, 100), -- admin.support -> SYSTEM.ADMIN
-       (1002, 101), -- admin.clinico -> ADMIN.CLINICO
-       (1003, 102), -- admin.sistema -> ADMIN.SISTEMA
-       (1004, 103), -- medico.01 -> MEDICO
-       (1005, 104), -- enfermeiro.01 -> ENFERMEIRO
-       (1006, 105), -- tecnico.01 -> TECNICO
-       (1007, 106), -- paciente.01 -> PACIENTE
-       (1008, 107) -- telemed.01 -> TELEMEDICINA
+VALUES (1001, 101), -- admin.sistema -> ADMIN.SISTEMA
+       (1002, 102), -- medico.01 -> MEDICO
+       (1003, 103), -- enfermeiro.01 -> ENFERMEIRO
+       (1004, 104), -- tecnico.01 -> TECNICO
+       (1005, 105), -- paciente.01 -> PACIENTE
+       (1006, 106) -- telemed.01 -> TELEMEDICINA
 ;

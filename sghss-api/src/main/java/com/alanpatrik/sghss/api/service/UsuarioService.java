@@ -95,7 +95,6 @@ import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
 import com.alanpatrik.sghss.api.model.Usuario;
 import com.alanpatrik.sghss.api.model.UsuarioRole;
 import com.alanpatrik.sghss.api.model.UsuarioRoleId;
-import com.alanpatrik.sghss.api.model.dto.request.AuditoriaRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.request.UsuarioRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.request.UsuarioUpdateRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.response.UsuarioResponseDTO;
@@ -119,7 +118,6 @@ public class UsuarioService {
     private final RoleRepository roleRepository;
     private final UsuarioRoleRepository usuarioRoleRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuditoriaService auditoriaService;
 
     @Transactional(readOnly = true)
     public UsuarioResponseDTO findByUsername(String username) {
@@ -145,8 +143,6 @@ public class UsuarioService {
 
         usuario = usuarioRepository.save(usuario);
 
-        registrarAuditoria(usuario.getUsername(), "CADASTRO", usuario.getId());
-
         return "Usuário criado com sucesso!";
     }
 
@@ -165,8 +161,6 @@ public class UsuarioService {
 
         usuario = usuarioRepository.save(usuario);
 
-        registrarAuditoria(usuario.getUsername(), "UPDATE", usuario.getId());
-
         return "Usuário atualizado com sucesso!";
     }
 
@@ -178,8 +172,6 @@ public class UsuarioService {
         usuario.setDataModificacao(LocalDateTime.now());
 
         usuario = usuarioRepository.save(usuario);
-
-        registrarAuditoria(usuario.getUsername(), "DELETE", usuario.getId());
 
         return "Usuário atualizado com sucesso!";
     }
@@ -197,8 +189,6 @@ public class UsuarioService {
                 .build();
 
         usuarioRole = usuarioRoleRepository.save(usuarioRole);
-
-        registrarAuditoria(usuario.getUsername(), "ADD_ROLE_USUARIO", usuarioRole.getRole().getId());
     }
 
     public void removeRoleFromUser(Long userId, Long roleId) {
@@ -208,21 +198,6 @@ public class UsuarioService {
                 .build();
 
         usuarioRoleRepository.findById(usuarioRoleId).ifPresent(usuarioRoleRepository::delete);
-
-        registrarAuditoria(String.valueOf(userId), "DELETE_ROLE_USUARIO", roleId);
-    }
-
-    private void registrarAuditoria(String usuario, String acao, Long idEntidade) {
-        var auditoriaRequestDTO = AuditoriaRequestDTO.builder()
-                .usuario(usuario)
-                .acao(acao)
-                .nomeEntidade("Usuario")
-                .idEntidade(String.valueOf(idEntidade))
-                .ip("-")
-                .detalhes("sucesso")
-                .build();
-
-        auditoriaService.save(auditoriaRequestDTO);
     }
 
     private void validarInformacoesUsuario(String username, String email) {

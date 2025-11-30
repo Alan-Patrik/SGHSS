@@ -30,6 +30,10 @@ public class Paciente extends Pessoa {
     @JsonIgnore
     private List<Consulta> consultas;
 
+    @OneToMany(mappedBy = "paciente")
+    @JsonIgnore
+    private List<Exame> exames;
+
     public Paciente(
             String nome,
             String cpf,
@@ -39,10 +43,14 @@ public class Paciente extends Pessoa {
             Endereco endereco,
             LocalDateTime dataCriacao,
             LocalDateTime dataModificacao,
-            Prontuario prontuario
+            Prontuario prontuario,
+            List<Consulta> consultas,
+            List<Exame> exames
     ) {
         super(nome, cpf, dataNascimento, telefone, email, endereco, dataCriacao, dataModificacao);
         this.prontuario = prontuario;
+        this.consultas = consultas;
+        this.exames = exames;
     }
 
     public static PacienteResponseDTO toResponseDTO(Paciente paciente) {
@@ -71,6 +79,7 @@ public class Paciente extends Pessoa {
         historicoPacienteResponseDTO.setDataCriacao(paciente.getDataCriacao());
         historicoPacienteResponseDTO.setDataModificacao(paciente.getDataModificacao());
         historicoPacienteResponseDTO.setProntuario(paciente.getProntuario());
+        historicoPacienteResponseDTO.setExames(paciente.getExames());
         return historicoPacienteResponseDTO;
     }
 

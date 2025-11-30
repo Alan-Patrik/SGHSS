@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
@@ -22,6 +23,7 @@ public class ProntuarioController {
 
     private final ProntuarioService prontuarioService;
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @GetMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -35,6 +37,7 @@ public class ProntuarioController {
                 .body(prontuarioService.findById(id));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @PostMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.CREATE_MESSAGE, useReturnTypeSchema = true),
@@ -49,6 +52,7 @@ public class ProntuarioController {
                 .body(prontuarioService.save(prontuarioRequestDTO));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_ATUALIZAR_PRONTUARIO + "')")
     @PutMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),

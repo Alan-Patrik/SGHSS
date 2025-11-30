@@ -12,6 +12,7 @@ import com.alanpatrik.sghss.api.repository.ConsultaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -77,6 +78,24 @@ public class ConsultaService {
         consulta.setStatusConsulta(StatusConsulta.N);
 
         return Consulta.toResponseDTO(consultaRepository.save(consulta));
+    }
+
+    public String cancel(ConsultaRequestDTO consultaRequestDTO) {
+        this.validarParametrosObrigatorios(consultaRequestDTO);
+
+        var consulta = consultaRepository
+                .findByDataHoraConsulta(consultaRequestDTO.getDataHoraConsulta())
+                .orElseThrow(() -> new InformacaoNaoEncontradaException("Consulta não encontrada."));
+
+        if (!consulta.getStatusConsulta().equals(StatusConsulta.N)) {
+            throw new InformacaoNaoEncontradaException("Não foi possível prosseguir. Consulta se encontra disponível.");
+        }
+
+        agendaService.cancelTime(consulta.getProfissionalSaude().getAgenda().getId(), consultaRequestDTO.getDataHoraConsulta());
+
+        consulta.setStatusConsulta(StatusConsulta.C);
+        consultaRepository.save(consulta);
+        return "Consulta cancelada com sucesso.";
     }
 
     public void delete(Long id) {

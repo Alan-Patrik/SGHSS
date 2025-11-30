@@ -15,20 +15,19 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/exame")
+@RequestMapping("/api/v1/exames")
 public class ExameController {
 
     private final ExameService exameService;
 
-    // TODO
-    // FAZER AUTENTICAÇÃO NO SISTEMA
-    // METODO SERÁ SOMENTE PARA O ADM DO SISTEMA
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @GetMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -40,6 +39,7 @@ public class ExameController {
                 .body(exameService.getAll());
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @GetMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -54,6 +54,7 @@ public class ExameController {
                 .body(exameService.findById(id));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @PostMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -70,6 +71,7 @@ public class ExameController {
                 .body(exameService.save(exameRequestDTO));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @PutMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -87,16 +89,14 @@ public class ExameController {
                 .body(exameService.update(id, exameUpdateRequestDTO));
     }
 
-    // TODO
-    // FAZER AUTENTICAÇÃO NO SISTEMA
-    // METODO SERÁ SOMENTE PARA O ADM DO SISTEMA
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @DeleteMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = Constantes.NO_CONTENT_MESSAGE, useReturnTypeSchema = true),
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity delete(
+    public ResponseEntity<Void> delete(
             @Parameter(example = "id", description = "Id do exame cadastrado", required = true) @PathVariable(name = "id") Long id
     ) {
         exameService.delete(id);

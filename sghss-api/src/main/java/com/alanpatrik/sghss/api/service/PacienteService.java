@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -56,7 +57,18 @@ public class PacienteService {
         var endereco = Endereco.builder().logradouro(enderecoPaciente.getLogradouro()).numero(enderecoPaciente.getNumero()).complemento(enderecoPaciente.getComplemento()).bairro(enderecoPaciente.getBairro()).cidade(enderecoPaciente.getCidade()).estado(enderecoPaciente.getEstado()).cep(enderecoPaciente.getCep()).build();
 
 
-        var paciente = new Paciente(pacienteRequestDTO.getNome(), pacienteRequestDTO.getCpf(), pacienteRequestDTO.getDataNascimento(), pacienteRequestDTO.getTelefone(), pacienteRequestDTO.getEmail(), endereco, LocalDateTime.now(), LocalDateTime.now(), null);
+        var paciente = new Paciente(
+                pacienteRequestDTO.getNome(),
+                pacienteRequestDTO.getCpf(),
+                pacienteRequestDTO.getDataNascimento(),
+                pacienteRequestDTO.getTelefone(),
+                pacienteRequestDTO.getEmail(),
+                endereco,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                null,
+                new ArrayList<>(),
+                new ArrayList<>());
 
         paciente = pacienteRepository.save(paciente);
         return Paciente.toResponseDTO(paciente);

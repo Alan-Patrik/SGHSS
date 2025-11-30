@@ -1,6 +1,5 @@
 package com.alanpatrik.sghss.api.security;
 
-import com.alanpatrik.sghss.api.comum.Constantes;
 import com.alanpatrik.sghss.api.security.jwt.JwtAuthenticationFilter;
 import com.alanpatrik.sghss.api.security.jwt.JwtTokenService;
 import lombok.RequiredArgsConstructor;
@@ -30,40 +29,21 @@ public class SecurityConfig {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                // REMOVER QUANDO TIVER A PRIMEIRA VERSÃO FECHADA.
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .authorizeHttpRequests(auth -> auth
-                                // h2-console liberado
-                                // Swagger liberado
-                                .requestMatchers(
-                                        "/h2-console/**",
-                                        "/v3/api-docs/**",
-                                        "/swagger-ui/**",
-                                        "/swagger-ui.html",
-                                        "/swagger-resources/**",
-                                        "/webjars/**")
-                                .permitAll()
+                        // h2-console liberado
+                        // Swagger liberado
+                        .requestMatchers(
+                                "/h2-console/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**")
+                        .permitAll()
 
-                                // Endpoint de login liberado
-                                .requestMatchers("/auth/login").permitAll()
-
-//                        // Endpoints por autoridade
-                        .requestMatchers("/api/v1/usuarios/**")
-                        .hasAnyAuthority(
-                                Constantes.LOGON_ROLE_ADMIN_SISTEMA,
-                                Constantes.LOGON_ROLE_ADMIN_CLINICA)
-//
-//                        .requestMatchers("/api/v1/agendas/**")
-//                        .hasAuthority(LogonUtil.LOGON_ROLE_USER_OPE)
-//
-//                        .requestMatchers("/api/v1/consultas/**")
-//                        .hasAuthority(LogonUtil.LOGON_ROLE_USER_OPE)
-//
-//                        .requestMatchers("/api/v1/exames/**")
-//                        .hasAuthority(LogonUtil.LOGON_ROLE_USER_OPE)
-//
-//                        .requestMatchers("/api/cadastro/cache/evict/**")
-//                        .hasAuthority(LogonUtil.RHSSO_CACHE_EVICT)
+                        // Endpoint de login liberado
+                        .requestMatchers("/auth/login").permitAll()
 
                         // Qualquer outro endpoint exige autenticação
                         .anyRequest().authenticated()

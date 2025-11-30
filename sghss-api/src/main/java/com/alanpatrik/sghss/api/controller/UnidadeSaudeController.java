@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,9 +26,7 @@ public class UnidadeSaudeController {
 
     private final UnidadeSaudeService unidadeSaudeService;
 
-    // TODO
-    // FAZER AUTENTICAÇÃO NO SISTEMA
-    // METODO SERÁ SOMENTE PARA O ADM DO SISTEMA
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @GetMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -39,6 +38,7 @@ public class UnidadeSaudeController {
                 .body(unidadeSaudeService.getAll());
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @GetMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -53,6 +53,7 @@ public class UnidadeSaudeController {
                 .body(unidadeSaudeService.findById(id));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @PostMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -69,6 +70,7 @@ public class UnidadeSaudeController {
                 .body(unidadeSaudeService.save(unidadeSaudeRequestDTO));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @PostMapping("/adicionar-profissional")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -85,6 +87,7 @@ public class UnidadeSaudeController {
                 .body(unidadeSaudeService.addProfissionalSaude(unidadeSaudeAdicionarProfissionalRequestDTO));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @PutMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -102,24 +105,23 @@ public class UnidadeSaudeController {
                 .body(unidadeSaudeService.update(id, unidadeSaudeRequestDTO));
     }
 
-    // TODO
-    // FAZER AUTENTICAÇÃO NO SISTEMA
-    // METODO SERÁ SOMENTE PARA O ADM DO SISTEMA
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @DeleteMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = Constantes.NO_CONTENT_MESSAGE, useReturnTypeSchema = true),
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public void delete(
+    public ResponseEntity<Void> delete(
             @Parameter(example = "id", description = "Id da Unidade de Saúde cadastrada", required = true) @PathVariable(name = "id") Long id
     ) {
         unidadeSaudeService.delete(id);
-        ResponseEntity
+        return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @DeleteMapping("/remover-profissional/{crm}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),

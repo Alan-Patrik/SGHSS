@@ -18,6 +18,7 @@ public class UsuarioController {
 
     private final UsuarioService usuarioService;
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_CADASTROS + "')")
     @GetMapping("/username")
     public ResponseEntity<UsuarioResponseDTO> findByUsername(@RequestParam String username) {
         return ResponseEntity
@@ -25,7 +26,7 @@ public class UsuarioController {
                 .body(usuarioService.findByUsername(username));
     }
 
-    @PreAuthorize("hasAnyAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "','" + Constantes.LOGON_ROLE_ADMIN_CLINICA + "')")
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_CADASTROS + "')")
     @PostMapping
     public ResponseEntity<String> create(@RequestBody UsuarioRequestDTO usuarioRequestDTO) {
         return ResponseEntity
@@ -33,6 +34,7 @@ public class UsuarioController {
                 .body(usuarioService.save(usuarioRequestDTO));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_CADASTROS + "')")
     @PostMapping("/{userId}/roles/{roleId}")
     public ResponseEntity<Void> assignRole(@PathVariable Long userId,
                                            @PathVariable Long roleId) {
@@ -42,6 +44,7 @@ public class UsuarioController {
                 .build();
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_CADASTROS + "')")
     @PutMapping("/{id}")
     public ResponseEntity<String> update(@PathVariable Long id, @RequestBody UsuarioUpdateRequestDTO usuarioUpdateRequestDTO) {
         return ResponseEntity
@@ -49,6 +52,7 @@ public class UsuarioController {
                 .body(usuarioService.update(id, usuarioUpdateRequestDTO));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_CADASTROS + "')")
     @PatchMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable Long id) {
         return ResponseEntity
@@ -56,6 +60,7 @@ public class UsuarioController {
                 .body(usuarioService.delete(id));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_CADASTROS + "')")
     @DeleteMapping("/{userId}/roles/{roleId}")
     public ResponseEntity<Void> removeRole(@PathVariable Long userId,
                                            @PathVariable Long roleId) {
@@ -64,7 +69,5 @@ public class UsuarioController {
                 .status(HttpStatus.NO_CONTENT)
                 .build();
     }
-
-
 }
 

@@ -1,5 +1,6 @@
 package com.alanpatrik.sghss.api.controller;
 
+import com.alanpatrik.sghss.api.comum.Constantes;
 import com.alanpatrik.sghss.api.model.dto.response.PrivilegioResponseDTO;
 import com.alanpatrik.sghss.api.model.dto.response.RoleResponseDTO;
 import com.alanpatrik.sghss.api.service.RbacQueryService;
@@ -21,15 +22,16 @@ public class RbacController {
 
     private final RbacQueryService rbacQueryService;
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @GetMapping("/usuarios/{username}/privilegios")
-    @PreAuthorize("hasAuthority(T(com.alanpatrik.sghss.api.util.LogonUtil).LOGON_ROLE_ADMIN)")
     public ResponseEntity<Set<PrivilegioResponseDTO>> getPrivilegesOfUser(@PathVariable String username) {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(rbacQueryService.getPrivilegesOfUser(username));
     }
 
-    @GetMapping("/users/{username}/roles")
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
+    @GetMapping("/usuarios/{username}/roles")
     public ResponseEntity<Set<RoleResponseDTO>> getRolesOfUser(@PathVariable String username) {
         return ResponseEntity
                 .status(HttpStatus.OK)

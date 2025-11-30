@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class PacienteController {
 
     private final PacienteService pacienteService;
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @GetMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -36,6 +38,7 @@ public class PacienteController {
                 .body(pacienteService.findAll());
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @GetMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -50,7 +53,7 @@ public class PacienteController {
                 .body(pacienteService.findById(id));
     }
 
-
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_VISUALIZAR_HISTORICO + "')")
     @GetMapping("/historico-paciente/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -65,6 +68,7 @@ public class PacienteController {
                 .body(pacienteService.findByHistoricoClinico(id));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_CADASTRAR_PACIENTE + "')")
     @PostMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.CREATE_MESSAGE, useReturnTypeSchema = true),
@@ -80,6 +84,7 @@ public class PacienteController {
                 .body(pacienteService.save(pacienteRequestDTO));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_ATUALIZAR_PACIENTE + "')")
     @PutMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -96,6 +101,7 @@ public class PacienteController {
                 .body(pacienteService.update(id, pacienteRequestDTO));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @DeleteMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -103,7 +109,7 @@ public class PacienteController {
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity delete(
+    public ResponseEntity<Void> delete(
             @Parameter(example = "id", description = "Id do paciente cadastrado", required = true) @PathVariable(name = "id") Long id
     ) {
         pacienteService.delete(id);

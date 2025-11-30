@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -52,15 +49,6 @@ public class AgendaService {
         if (profissionalSaude.getAgenda() != null) {
             throw new ConflitoException(Constantes.CONFLICT_MESSAGE);
         }
-
-//        var horariosDisponiveis = this.gerarHorariosDisponiveis();
-//        var horarioDTOList = new ArrayList<HorarioDisponivelDTO>();
-//        for (var horario : horariosDisponiveis) {
-//            var horarioDTO = new HorarioDisponivelDTO();
-//            horarioDTO.setStatus(StatusHorario.D);
-//            horarioDTO.setHorarioDisponivel(horario);
-//            horarioDTOList.add(horarioDTO);
-//        }
 
         var agenda = Agenda.builder()
                 .profissionalSaude(profissionalSaude)
@@ -194,6 +182,33 @@ public class AgendaService {
         agendaRepository.save(agenda);
     }
 
+    public void cancelTime(Long id, LocalDateTime dataHoraConsulta) {
+        this.validarParametrosObrigatorios(id, dataHoraConsulta);
+        var agendaResponseDTO = this.findById(id);
+
+        var containsHorario = false;
+        var horariosDisponiveis = new ArrayList<HorarioDisponivelDTO>();
+        for (var horarioDTO : agendaResponseDTO.getHorariosDisponiveis()) {
+            if (horarioDTO.getHorarioDisponivel().equals(dataHoraConsulta) &&
+                    horarioDTO.getStatus() == StatusHorario.N) {
+                horariosDisponiveis.remove(horarioDTO);
+
+                horarioDTO.setStatus(StatusHorario.D);
+                horariosDisponiveis.add(horarioDTO);
+                containsHorario = true;
+            } else {
+                horariosDisponiveis.add(horarioDTO);
+            }
+        }
+
+        if (!containsHorario) {
+            throw new InformacaoNaoEncontradaException("Horário informado não encontrado ou agendado.");
+        }
+
+        agendaResponseDTO.setHorariosDisponiveis(horariosDisponiveis);
+        agendaRepository.save(Agenda.toEntity(agendaResponseDTO));
+    }
+
     public void deleteTime(Long id, LocalDateTime dataHoraConsulta) {
         this.validarParametrosObrigatorios(id, dataHoraConsulta);
         var agendaResponseDTO = this.findById(id);
@@ -232,34 +247,5 @@ public class AgendaService {
         if (agendaRequestDTO.getProfissionalSaude() == null) {
             throw new ParametroInvalidoException("O campo CRM do Profissional de Saúde é obrigatório.");
         }
-    }
-
-    private List<LocalDateTime> gerarHorariosDisponiveis() {
-        List<LocalDateTime> horarios = new ArrayList<>();
-
-        LocalDate hoje = LocalDate.now();
-        LocalDate inicio = hoje.plusDays(1);
-        LocalDate fim = inicio
-                .plusMonths(2)
-                .withDayOfMonth(
-                        inicio
-                                .plusMonths(2)
-                                .lengthOfMonth()
-                );
-
-        for (LocalDate data = inicio; !data.isAfter(fim); data = data.plusDays(1)) {
-            DayOfWeek diaSemana = data.getDayOfWeek();
-            if (diaSemana != DayOfWeek.SATURDAY && diaSemana != DayOfWeek.SUNDAY) {
-                // Horários padrão: 08:00, 08:30, 09:00, 09:30, 10:00, 10:30, 11:00
-                // 11:30, 12:00, 13:00, 13:30, 14:00,14:30, 15:00, 15:30, 16:00, 16:30
-                int[] horas = {8, 9, 10, 11, 12, 13, 14, 15, 16};
-                for (int hora : horas) {
-                    horarios.add(LocalDateTime.of(data, LocalTime.of(hora, 0)));
-                    horarios.add(LocalDateTime.of(data, LocalTime.of(hora, 30)));
-                }
-            }
-        }
-
-        return horarios;
     }
 }

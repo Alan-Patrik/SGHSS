@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -20,14 +21,12 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/agenda")
+@RequestMapping("/api/v1/agendas")
 public class AgendaController {
 
     private final AgendaService agendaService;
 
-    // TODO
-    // FAZER AUTENTICAÇÃO NO SISTEMA
-    // METODO SERÁ SOMENTE PARA O ADM DO SISTEMA
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_AGENDAS + "')")
     @GetMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -39,6 +38,7 @@ public class AgendaController {
                 .body(agendaService.getAll());
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_AGENDAS + "')")
     @GetMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -53,6 +53,7 @@ public class AgendaController {
                 .body(agendaService.findById(id));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_AGENDAS + "')")
     @PostMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -69,6 +70,7 @@ public class AgendaController {
                 .body(agendaService.save(agenda));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_AGENDAS + "')")
     @PostMapping("/{id}/horario")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -86,6 +88,7 @@ public class AgendaController {
                 .body(agendaService.addTime(id, dataHoraNovaConsulta));
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_AGENDAS + "')")
     @PostMapping("/{id}/horario/agendar")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -104,6 +107,7 @@ public class AgendaController {
                 .build();
     }
 
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_AGENDAS + "')")
     @PutMapping("/{id}/horario")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -122,21 +126,19 @@ public class AgendaController {
                 .body(agendaService.updateTime(id, dataHoraConsultaAntiga, dataHoraNovaConsulta));
     }
 
-    // TODO
-    // FAZER AUTENTICAÇÃO NO SISTEMA
-    // METODO SERÁ SOMENTE PARA O ADM DO SISTEMA
+    @PreAuthorize("hasAuthority('" + Constantes.PRIV_GERENCIAR_AGENDAS + "')")
     @DeleteMapping("/{id}/horario")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = Constantes.NO_CONTENT_MESSAGE, useReturnTypeSchema = true),
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public void deleteTime(
+    public ResponseEntity<Void> deleteTime(
             @Parameter(example = "id", description = "Id da agenda cadastrada", required = true) @PathVariable(name = "id") Long id,
             @Parameter(example = "dataHoraConsulta", description = "Data e hora da consulta", required = true, name = "dataHoraConsulta") @RequestParam LocalDateTime dataHoraConsulta
     ) {
         agendaService.deleteTime(id, dataHoraConsulta);
-        ResponseEntity
+        return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();
     }
