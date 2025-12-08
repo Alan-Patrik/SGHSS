@@ -1,13 +1,15 @@
 package com.alanpatrik.sghss.api.model.dto.request;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 public class UnidadeSaudeAdicionarProfissionalRequestDTO {
     private String nomeUnidadeSaude;
-    private String CRM;
+    private String crm;
 }

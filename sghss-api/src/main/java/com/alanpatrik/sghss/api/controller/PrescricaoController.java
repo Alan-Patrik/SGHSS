@@ -15,12 +15,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/prescricoes")
 public class PrescricaoController {
 
     private final PrescricaoService prescricaoService;
+
+    @GetMapping
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
+    })
+    public ResponseEntity<List<PrescricaoResponseDTO>> getAll() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(prescricaoService.findAll());
+    }
 
     @GetMapping("/{id}")
     @ApiResponses(value = {
@@ -32,7 +46,7 @@ public class PrescricaoController {
             @Parameter(example = "id", description = "Id da prescrição cadastrada", required = true) @PathVariable(name = "id") Long id
     ) {
         return ResponseEntity
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
                 .body(prescricaoService.findById(id));
     }
 
@@ -47,7 +61,7 @@ public class PrescricaoController {
             @Parameter(example = "Prescricao", description = "Objeto Prescrição", required = true, name = "prescricaoRequestDTO") @RequestBody PrescricaoRequestDTO prescricaoRequestDTO
     ) {
         return ResponseEntity
-                .status(HttpStatus.CREATED.value())
+                .status(HttpStatus.CREATED)
                 .body(prescricaoService.save(prescricaoRequestDTO));
     }
 
@@ -63,7 +77,22 @@ public class PrescricaoController {
             @Parameter(example = "Prescricao", description = "Objeto Prescrção", required = true, name = "prescricaoRequestDTO") @RequestBody PrescricaoRequestDTO prescricaoRequestDTO
     ) {
         return ResponseEntity
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
                 .body(prescricaoService.update(id, prescricaoRequestDTO));
+    }
+
+    @DeleteMapping("/{id}")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "400", description = Constantes.BAD_REQUEST_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
+    })
+    public ResponseEntity<String> update(
+            @Parameter(example = "id", description = "Id da prescricao cadastrada", required = true) @PathVariable(name = "id") Long id
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(prescricaoService.delete(id));
     }
 }

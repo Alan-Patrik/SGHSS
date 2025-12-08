@@ -1,4 +1,4 @@
-package com.alanpatrik.sghss.api.model.dto.response;
+package com.alanpatrik.sghss.api.model.dto;
 
 import com.alanpatrik.sghss.api.model.enums.AreaAtuacao;
 import com.alanpatrik.sghss.api.model.enums.StatusConsulta;
@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
-public class ConsultaResponseDTO {
+public class ConsultaDTO {
 
     private Long id;
     private LocalDateTime dataHoraConsulta;
@@ -23,4 +23,7 @@ public class ConsultaResponseDTO {
     private StatusConsulta statusConsulta;
     private String nomePaciente;
     private String CRM;
+    private String token;
+    private LocalDateTime joinTokenExpiresAt;
+    private String meetingURL;
 }

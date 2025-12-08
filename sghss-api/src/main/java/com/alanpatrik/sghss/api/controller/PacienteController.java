@@ -2,9 +2,9 @@ package com.alanpatrik.sghss.api.controller;
 
 import com.alanpatrik.sghss.api.comum.Constantes;
 import com.alanpatrik.sghss.api.model.dto.ErroDTO;
+import com.alanpatrik.sghss.api.model.dto.HistoricoPacienteDTO;
+import com.alanpatrik.sghss.api.model.dto.PacienteDTO;
 import com.alanpatrik.sghss.api.model.dto.request.PacienteRequestDTO;
-import com.alanpatrik.sghss.api.model.dto.response.HistoricoPacienteResponseDTO;
-import com.alanpatrik.sghss.api.model.dto.response.PacienteResponseDTO;
 import com.alanpatrik.sghss.api.service.PacienteService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,9 +30,9 @@ public class PacienteController {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<List<PacienteResponseDTO>> getAll() {
+    public ResponseEntity<List<PacienteDTO>> getAll() {
         return ResponseEntity
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
                 .body(pacienteService.findAll());
     }
 
@@ -42,14 +42,13 @@ public class PacienteController {
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<PacienteResponseDTO> getById(
+    public ResponseEntity<PacienteDTO> getById(
             @Parameter(example = "id", description = "Id do paciente cadastrado", required = true) @PathVariable(name = "id") Long id
     ) {
         return ResponseEntity
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
                 .body(pacienteService.findById(id));
     }
-
 
     @GetMapping("/historico-paciente/{id}")
     @ApiResponses(value = {
@@ -57,11 +56,11 @@ public class PacienteController {
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<HistoricoPacienteResponseDTO> getByHistoricoClinicoPaciente(
+    public ResponseEntity<HistoricoPacienteDTO> getByHistoricoClinicoPaciente(
             @Parameter(example = "id", description = "Id do prontuário do paciente cadastrado", required = true) @PathVariable(name = "id") Long id
     ) {
         return ResponseEntity
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
                 .body(pacienteService.findByHistoricoClinico(id));
     }
 
@@ -72,11 +71,11 @@ public class PacienteController {
             @ApiResponse(responseCode = "409", description = Constantes.CONFLICT_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<PacienteResponseDTO> create(
+    public ResponseEntity<PacienteDTO> create(
             @Parameter(example = "Paciente", description = "Objeto Paciente", required = true, name = "pacienteRequestDTO") @RequestBody PacienteRequestDTO pacienteRequestDTO
     ) {
         return ResponseEntity
-                .status(HttpStatus.CREATED.value())
+                .status(HttpStatus.CREATED)
                 .body(pacienteService.save(pacienteRequestDTO));
     }
 
@@ -87,12 +86,27 @@ public class PacienteController {
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<PacienteResponseDTO> update(
+    public ResponseEntity<PacienteDTO> update(
             @Parameter(example = "id", description = "Id do paciente cadastrado", required = true) @PathVariable(name = "id") Long id,
             @Parameter(example = "Paciente", description = "Objeto Paciente", required = true, name = "pacienteRequestDTO") @RequestBody PacienteRequestDTO pacienteRequestDTO
     ) {
         return ResponseEntity
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
                 .body(pacienteService.update(id, pacienteRequestDTO));
+    }
+
+    @DeleteMapping("/{id}")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "400", description = Constantes.BAD_REQUEST_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
+    })
+    public ResponseEntity<String> delete(
+            @Parameter(example = "id", description = "Id do paciente cadastrado", required = true) @PathVariable(name = "id") Long id
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(pacienteService.delete(id));
     }
 }

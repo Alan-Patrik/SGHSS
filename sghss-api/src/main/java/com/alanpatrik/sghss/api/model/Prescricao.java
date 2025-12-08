@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Builder
 @NoArgsConstructor
@@ -58,8 +58,16 @@ public class Prescricao {
         return prescricao;
     }
 
-    public static List<Prescricao> responseToEntityList(List<PrescricaoResponseDTO> prescricaoDTOList) {
-        var prescricoes = new ArrayList<Prescricao>();
+    public static Set<PrescricaoResponseDTO> toResponseDTOList(Set<Prescricao> prescricoes) {
+        var prescricaoDTOList = new LinkedHashSet<PrescricaoResponseDTO>();
+        for (Prescricao prescricao : prescricoes) {
+            prescricaoDTOList.add(toResponseDTO(prescricao));
+        }
+        return prescricaoDTOList;
+    }
+
+    public static Set<Prescricao> responseToEntityList(Set<PrescricaoResponseDTO> prescricaoDTOList) {
+        var prescricoes = new LinkedHashSet<Prescricao>();
         for (PrescricaoResponseDTO prescricaoDTO : prescricaoDTOList) {
             var prescricao = toEntity(prescricaoDTO);
             prescricoes.add(prescricao);

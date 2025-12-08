@@ -1,14 +1,17 @@
 package com.alanpatrik.sghss.api.model;
 
-import com.alanpatrik.sghss.api.model.dto.response.ExameResponseDTO;
+import com.alanpatrik.sghss.api.model.dto.ExameDTO;
 import com.alanpatrik.sghss.api.model.enums.TipoConsulta;
 import com.alanpatrik.sghss.api.model.enums.TipoExame;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Builder
 @AllArgsConstructor
@@ -52,29 +55,49 @@ public class Exame {
     @JoinColumn(name = "ID_UNIDADE_SERVIÇO")
     private UnidadeSaude unidadeSaude;
 
-    public static ExameResponseDTO toResponseDTO(Exame exame) {
-        var exameResponseDTO = new ExameResponseDTO();
-        exameResponseDTO.setId(exame.getId());
-        exameResponseDTO.setObservacao(exame.getObservacao());
-        exameResponseDTO.setUnidadeSaude(exame.getUnidadeSaude());
-        exameResponseDTO.setTipoExame(exame.getTipoExame());
-        exameResponseDTO.setTipoConsulta(exame.getTipoConsulta());
-        exameResponseDTO.setDataHoraExame(exame.getDataHoraExame());
-        exameResponseDTO.setPaciente(exame.getPaciente());
-        exameResponseDTO.setProfissionalSaude(exame.getProfissionalSaude());
-        return exameResponseDTO;
+    @OneToOne(mappedBy = "exame", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Pagamento pagamento;
+
+    public static ExameDTO toResponseDTO(Exame exame) {
+        var exameDTO = new ExameDTO();
+        exameDTO.setId(exame.getId());
+        exameDTO.setObservacao(exame.getObservacao());
+        exameDTO.setUnidadeSaude(UnidadeSaude.toResponseDTO(exame.getUnidadeSaude()));
+        exameDTO.setTipoExame(exame.getTipoExame());
+        exameDTO.setTipoConsulta(exame.getTipoConsulta());
+        exameDTO.setDataHoraExame(exame.getDataHoraExame());
+        exameDTO.setPaciente(Paciente.toResponseDTO(exame.getPaciente()));
+        exameDTO.setProfissionalSaude(ProfissionalSaude.toResponseDTO(exame.getProfissionalSaude()));
+        return exameDTO;
     }
 
-    public static Exame toEntity(ExameResponseDTO exameResponseDTO) {
+    public static Exame toEntity(ExameDTO exameDTO) {
         var exame = new Exame();
-        exame.setId(exameResponseDTO.getId());
-        exame.setObservacao(exameResponseDTO.getObservacao());
-        exame.setUnidadeSaude(exameResponseDTO.getUnidadeSaude());
-        exame.setTipoExame(exameResponseDTO.getTipoExame());
-        exame.setTipoConsulta(exameResponseDTO.getTipoConsulta());
-        exame.setDataHoraExame(exameResponseDTO.getDataHoraExame());
-        exame.setPaciente(exameResponseDTO.getPaciente());
-        exame.setProfissionalSaude(exameResponseDTO.getProfissionalSaude());
+        exame.setId(exameDTO.getId());
+        exame.setObservacao(exameDTO.getObservacao());
+        exame.setUnidadeSaude(UnidadeSaude.toEntity(exameDTO.getUnidadeSaude()));
+        exame.setTipoExame(exameDTO.getTipoExame());
+        exame.setTipoConsulta(exameDTO.getTipoConsulta());
+        exame.setDataHoraExame(exameDTO.getDataHoraExame());
+        exame.setPaciente(Paciente.toEntity(exameDTO.getPaciente()));
+        exame.setProfissionalSaude(ProfissionalSaude.toEntity(exameDTO.getProfissionalSaude()));
         return exame;
+    }
+
+    public static Set<ExameDTO> toResponseDTOList(Set<Exame> exames) {
+        var exameDTOList = new LinkedHashSet<ExameDTO>();
+        for (Exame exame : exames) {
+            exameDTOList.add(toResponseDTO(exame));
+        }
+        return exameDTOList;
+    }
+
+    public void vincularPagamento(Pagamento pagamento) {
+        if (pagamento != null) {
+            pagamento.setExame(this);
+            pagamento.setConsulta(null);
+            this.pagamento = pagamento;
+        }
     }
 }

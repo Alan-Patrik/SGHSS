@@ -4,18 +4,19 @@ import com.alanpatrik.sghss.api.comum.Constantes;
 import com.alanpatrik.sghss.api.exception.InformacaoNaoEncontradaException;
 import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
 import com.alanpatrik.sghss.api.model.Exame;
+import com.alanpatrik.sghss.api.model.dto.ExameDTO;
 import com.alanpatrik.sghss.api.model.dto.request.ExameRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.request.ExameUpdateRequestDTO;
-import com.alanpatrik.sghss.api.model.dto.response.ExameResponseDTO;
 import com.alanpatrik.sghss.api.model.enums.TipoConsulta;
 import com.alanpatrik.sghss.api.model.enums.TipoExame;
 import com.alanpatrik.sghss.api.repository.ExameRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.alanpatrik.sghss.api.security.anotation.RequireRoles;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,18 +30,53 @@ public class ExameService {
     private final ProfissionalSaudeService profissionalSaudeService;
     private final AgendaService agendaService;
 
-    public List<ExameResponseDTO> getAll() {
+    private static boolean isMaiorQue90Dias(ExameRequestDTO exameRequestDTO, List<Exame> examesPaciente) {
+        var maiorQue90Dias = false;
+        if (!examesPaciente.isEmpty()) {
+            for (var examePaciente : examesPaciente) {
+                if (examePaciente.getPaciente().getNome().equals(exameRequestDTO.getNomePaciente()) &&
+                        examePaciente.getTipoExame().equals(exameRequestDTO.getTipoExame())) {
+                    maiorQue90Dias = exameRequestDTO.getDataHoraExame()
+                            .isBefore(examePaciente.getDataHoraExame().plusDays(90));
+                }
+            }
+        }
+        return maiorQue90Dias;
+    }
+
+    private static boolean isMaiorQue90Dias(ExameUpdateRequestDTO exameUpdateRequestDTO, List<Exame> examesPaciente) {
+        var maiorQue90Dias = false;
+        if (!examesPaciente.isEmpty()) {
+            for (var examePaciente : examesPaciente) {
+                if (examePaciente.getPaciente().getNome().equals(exameUpdateRequestDTO.getNomePaciente()) &&
+                        examePaciente.getTipoExame().equals(exameUpdateRequestDTO.getTipoExame())) {
+                    maiorQue90Dias = exameUpdateRequestDTO.getDataHoraExameNovo()
+                            .isBefore(examePaciente.getDataHoraExame().plusDays(90));
+                }
+            }
+        }
+        return maiorQue90Dias;
+    }
+
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
+    public List<ExameDTO> findAll() {
         return exameRepository.findAll().stream().map(Exame::toResponseDTO).collect(Collectors.toList());
     }
 
-    public ExameResponseDTO findById(Long id) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
+    public ExameDTO findById(Long id) {
         var exame = exameRepository.findById(id)
-                .orElseThrow(() -> new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
+                .orElseThrow(() -> new InformacaoNaoEncontradaException(
+                        Constantes.EXAME_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id)))
+                );
         return Exame.toResponseDTO(exame);
     }
 
-    @Transactional
-    public ExameResponseDTO save(ExameRequestDTO exameRequestDTO) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public ExameDTO save(ExameRequestDTO exameRequestDTO) {
         this.validarParametrosObrigatorios(exameRequestDTO);
 
         var unidadeSaude = unidadeSaudeService.findByName(exameRequestDTO.getNomeUnidadeSaude());
@@ -69,9 +105,11 @@ public class ExameService {
         return Exame.toResponseDTO(exame);
     }
 
-    @Transactional
-    public ExameResponseDTO update(Long id, ExameUpdateRequestDTO exameUpdateRequestDTO) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public ExameDTO update(Long id, ExameUpdateRequestDTO exameUpdateRequestDTO) {
         this.validarParametrosObrigatorios(exameUpdateRequestDTO);
+
         var exame = Exame.toEntity(this.findById(id));
         var unidadeSaude = unidadeSaudeService.findByName(exameUpdateRequestDTO.getNomeUnidadeSaude());
         var profissionalSaude = profissionalSaudeService.findByCRM(exameUpdateRequestDTO.getCRM());
@@ -97,37 +135,35 @@ public class ExameService {
         return Exame.toResponseDTO(exame);
     }
 
-    public void delete(Long id) {
-        var exame = this.findById(id);
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public String delete(Long id) {
+        var exame = exameRepository.findById(id).orElseThrow(() ->
+                new InformacaoNaoEncontradaException(
+                        Constantes.EXAME_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id)))
+        );
+
+        var unidadeSaude = exame.getUnidadeSaude();
+        if (unidadeSaude != null) {
+            exame.setUnidadeSaude(unidadeSaude);
+        }
+
+        var profissionalSaude = exame.getProfissionalSaude();
+        if (profissionalSaude != null) {
+            exame.setProfissionalSaude(null);
+        }
+
+        var paciente = exame.getPaciente();
+        if (paciente.getExames() != null && !paciente.getExames().isEmpty()) {
+            for (var consulta : new ArrayList<>(paciente.getConsultas())) {
+                consulta.setPaciente(null);
+            }
+            paciente.getExames().clear();
+        }
+
         exameRepository.deleteById(exame.getId());
-    }
 
-    private static boolean isMaiorQue90Dias(ExameRequestDTO exameRequestDTO, List<Exame> examesPaciente) {
-        var maiorQue90Dias = false;
-        if (!examesPaciente.isEmpty()) {
-            for (var examePaciente : examesPaciente) {
-                if (examePaciente.getPaciente().getNome().equals(exameRequestDTO.getNomePaciente()) &&
-                        examePaciente.getTipoExame().equals(exameRequestDTO.getTipoExame())) {
-                    maiorQue90Dias = exameRequestDTO.getDataHoraExame()
-                            .isBefore(examePaciente.getDataHoraExame().plusDays(90));
-                }
-            }
-        }
-        return maiorQue90Dias;
-    }
-
-    private static boolean isMaiorQue90Dias(ExameUpdateRequestDTO exameUpdateRequestDTO, List<Exame> examesPaciente) {
-        var maiorQue90Dias = false;
-        if (!examesPaciente.isEmpty()) {
-            for (var examePaciente : examesPaciente) {
-                if (examePaciente.getPaciente().getNome().equals(exameUpdateRequestDTO.getNomePaciente()) &&
-                        examePaciente.getTipoExame().equals(exameUpdateRequestDTO.getTipoExame())) {
-                    maiorQue90Dias = exameUpdateRequestDTO.getDataHoraExameNovo()
-                            .isBefore(examePaciente.getDataHoraExame().plusDays(90));
-                }
-            }
-        }
-        return maiorQue90Dias;
+        return "Exame deletado com sucesso!";
     }
 
     private void validarParametrosObrigatorios(ExameRequestDTO exameRequestDTO) {

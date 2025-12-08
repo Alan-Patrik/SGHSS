@@ -64,4 +64,19 @@ public class ProntuarioController {
                 .status(HttpStatus.OK.value())
                 .body(prontuarioService.update(id, prontuarioRequestDTO));
     }
+
+    @DeleteMapping("/{id}")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "400", description = Constantes.BAD_REQUEST_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
+            @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
+    })
+    public ResponseEntity<String> delete(
+            @Parameter(example = "id", description = "Id do prontuário cadastrado", required = true) @PathVariable(name = "id") Long id
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.OK.value())
+                .body(prontuarioService.delete(id));
+    }
 }

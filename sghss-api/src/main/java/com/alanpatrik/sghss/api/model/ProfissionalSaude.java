@@ -1,8 +1,10 @@
 package com.alanpatrik.sghss.api.model;
 
+import com.alanpatrik.sghss.api.model.dto.ProfissionalSaudeDTO;
 import com.alanpatrik.sghss.api.model.dto.response.ProfissionalSaudeResponseDTO;
 import com.alanpatrik.sghss.api.model.enums.AreaAtuacao;
 import com.alanpatrik.sghss.api.model.enums.Especialidade;
+import com.alanpatrik.sghss.api.security.crypto.Crypto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -10,8 +12,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @NoArgsConstructor
 @Getter
@@ -36,15 +38,21 @@ public class ProfissionalSaude extends Pessoa {
 
     @OneToMany(mappedBy = "profissionalSaude")
     @JsonIgnore
-    private List<Consulta> consultas;
+    private Set<Consulta> consultas = new LinkedHashSet<>();
 
-    @OneToOne(mappedBy = "profissionalSaude")
+    @OneToOne(mappedBy = "profissionalSaude", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Agenda agenda;
 
-    @ManyToOne
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "PROFISSIONAL_UNIDADE_SAUDE",
+            joinColumns = @JoinColumn(name = "ID_PROFISSIONAL_SAUDE", referencedColumnName = "ID_PROFISSIONAL_SAUDE"),
+            inverseJoinColumns = @JoinColumn(name = "ID_UNIDADE_SAUDE", referencedColumnName = "ID_UNIDADE_SAUDE")
+    )
     @JsonIgnore
-    private UnidadeSaude unidadeSaude;
+    private Set<UnidadeSaude> unidades = new LinkedHashSet<>();
+
 
     public ProfissionalSaude(
             String nome,
@@ -57,34 +65,25 @@ public class ProfissionalSaude extends Pessoa {
             LocalDateTime dataModificacao,
             Especialidade especialidade,
             AreaAtuacao areaAtuacao,
-            List<Consulta> consultas,
+            Set<Consulta> consultas,
             String CRM,
             Agenda agenda,
-            UnidadeSaude unidadeSaude) {
+            Set<UnidadeSaude> unidades) {
         super(nome, cpf, dataNascimento, telefone, email, endereco, dataCriacao, dataModificacao);
         this.especialidade = especialidade;
         this.areaAtuacao = areaAtuacao;
         this.consultas = consultas;
         this.CRM = CRM;
         this.agenda = agenda;
-        this.unidadeSaude = unidadeSaude;
+        this.unidades = unidades;
     }
 
     public static ProfissionalSaudeResponseDTO toResponseDTO(ProfissionalSaude profissionalSaude) {
         var profissionalSaudeResponseDTO = new ProfissionalSaudeResponseDTO();
         profissionalSaudeResponseDTO.setId(profissionalSaude.getId());
         profissionalSaudeResponseDTO.setNome(profissionalSaude.getNome());
-        profissionalSaudeResponseDTO.setCpf(profissionalSaude.getCpf());
-        profissionalSaudeResponseDTO.setDataNascimento(profissionalSaude.getDataNascimento());
-        profissionalSaudeResponseDTO.setTelefone(profissionalSaude.getTelefone());
-        profissionalSaudeResponseDTO.setEmail(profissionalSaude.getEmail());
-        profissionalSaudeResponseDTO.setEndereco(profissionalSaude.getEndereco());
-        profissionalSaudeResponseDTO.setDataCriacao(profissionalSaude.getDataCriacao());
-        profissionalSaudeResponseDTO.setDataModificacao(profissionalSaude.getDataModificacao());
-        profissionalSaudeResponseDTO.setEspecialidade(profissionalSaude.getEspecialidade());
-        profissionalSaudeResponseDTO.setAreaAtuacao(profissionalSaude.getAreaAtuacao());
-        profissionalSaudeResponseDTO.setConsultas(Consulta.responseToDTOList(profissionalSaude.getConsultas()));
         profissionalSaudeResponseDTO.setCRM(profissionalSaude.getCRM());
+
         return profissionalSaudeResponseDTO;
     }
 
@@ -92,45 +91,62 @@ public class ProfissionalSaude extends Pessoa {
         var profissionalSaude = new ProfissionalSaude();
         profissionalSaude.setId(profissionalSaudeResponseDTO.getId());
         profissionalSaude.setNome(profissionalSaudeResponseDTO.getNome());
-        profissionalSaude.setCpf(profissionalSaudeResponseDTO.getCpf());
-        profissionalSaude.setDataNascimento(profissionalSaudeResponseDTO.getDataNascimento());
-        profissionalSaude.setTelefone(profissionalSaudeResponseDTO.getTelefone());
-        profissionalSaude.setEmail(profissionalSaudeResponseDTO.getEmail());
-        profissionalSaude.setEndereco(profissionalSaudeResponseDTO.getEndereco());
-        profissionalSaude.setDataCriacao(profissionalSaudeResponseDTO.getDataCriacao());
-        profissionalSaude.setDataModificacao(profissionalSaudeResponseDTO.getDataModificacao());
-        profissionalSaude.setEspecialidade(profissionalSaudeResponseDTO.getEspecialidade());
-        profissionalSaude.setAreaAtuacao(profissionalSaudeResponseDTO.getAreaAtuacao());
-        profissionalSaude.setConsultas(profissionalSaude.getConsultas());
         profissionalSaude.setCRM(profissionalSaudeResponseDTO.getCRM());
+
         return profissionalSaude;
     }
 
-    public static List<ProfissionalSaudeResponseDTO> toResponseDTOList(List<ProfissionalSaude> profissionaisSaude) {
-        var profissionaisSaudeResponseDTO = new ArrayList<ProfissionalSaudeResponseDTO>();
+    public static Set<ProfissionalSaudeResponseDTO> toResponseDTOList(Set<ProfissionalSaude> profissionaisSaude) {
+        var profissionaisSaudeResponseDTO = new LinkedHashSet<ProfissionalSaudeResponseDTO>();
         for (var profissionalSaude : profissionaisSaude) {
             profissionaisSaudeResponseDTO.add(toResponseDTO(profissionalSaude));
         }
         return profissionaisSaudeResponseDTO;
     }
 
-    public static List<ProfissionalSaude> toEntityList(List<ProfissionalSaudeResponseDTO> profissionaisSaudeDTO) {
-        var profissionaisSaude = new ArrayList<ProfissionalSaude>();
+    public static Set<ProfissionalSaude> toEntityList(Set<ProfissionalSaudeResponseDTO> profissionaisSaudeDTO) {
+        var profissionaisSaude = new LinkedHashSet<ProfissionalSaude>();
         for (var profissionalSaudeDTO : profissionaisSaudeDTO) {
             profissionaisSaude.add(ProfissionalSaude.toEntity(profissionalSaudeDTO));
         }
         return profissionaisSaude;
     }
-//
-//    public void atualizarProntuario() {
-//
-//    }
-//
-//    public void emitirReceita() {
-//
-//    }
-//
-//    public void consultarHistoricoPaciente() {
-//
-//    }
+
+    public static ProfissionalSaudeDTO toDTO(ProfissionalSaude profissionalSaude) {
+        var profissionalSaudeDTO = new ProfissionalSaudeDTO();
+        profissionalSaudeDTO.setId(profissionalSaude.getId());
+        profissionalSaudeDTO.setNome(profissionalSaude.getNome());
+        profissionalSaudeDTO.setCpf(Crypto.mascararCpf(profissionalSaude.getCpf()));
+        profissionalSaudeDTO.setDataNascimento(profissionalSaude.getDataNascimento());
+        profissionalSaudeDTO.setTelefone(profissionalSaude.getTelefone());
+        profissionalSaudeDTO.setEmail(Crypto.mascararEmail(profissionalSaude.getEmail()));
+        profissionalSaudeDTO.setEndereco(profissionalSaude.getEndereco());
+        profissionalSaudeDTO.setDataCriacao(profissionalSaude.getDataCriacao());
+        profissionalSaudeDTO.setDataModificacao(profissionalSaude.getDataModificacao());
+        profissionalSaudeDTO.setEspecialidade(profissionalSaude.getEspecialidade());
+        profissionalSaudeDTO.setAreaAtuacao(profissionalSaude.getAreaAtuacao());
+        profissionalSaudeDTO.setConsultas(Consulta.toDTOList(profissionalSaude.getConsultas()));
+        profissionalSaudeDTO.setCRM(profissionalSaude.getCRM());
+
+        return profissionalSaudeDTO;
+    }
+
+    public static ProfissionalSaude toEntityResponse(ProfissionalSaudeDTO profissionalSaudeDTO) {
+        var profissionalSaude = new ProfissionalSaude();
+        profissionalSaude.setId(profissionalSaudeDTO.getId());
+        profissionalSaude.setNome(profissionalSaudeDTO.getNome());
+        profissionalSaude.setCpf(Crypto.mascararCpf(profissionalSaudeDTO.getCpf()));
+        profissionalSaude.setDataNascimento(profissionalSaudeDTO.getDataNascimento());
+        profissionalSaude.setTelefone(profissionalSaudeDTO.getTelefone());
+        profissionalSaude.setEmail(Crypto.mascararEmail(profissionalSaudeDTO.getEmail()));
+        profissionalSaude.setEndereco(profissionalSaudeDTO.getEndereco());
+        profissionalSaude.setDataCriacao(profissionalSaudeDTO.getDataCriacao());
+        profissionalSaude.setDataModificacao(profissionalSaudeDTO.getDataModificacao());
+        profissionalSaude.setEspecialidade(profissionalSaudeDTO.getEspecialidade());
+        profissionalSaude.setAreaAtuacao(profissionalSaudeDTO.getAreaAtuacao());
+        profissionalSaude.setConsultas(profissionalSaude.getConsultas());
+        profissionalSaude.setCRM(profissionalSaudeDTO.getCRM());
+
+        return profissionalSaude;
+    }
 }

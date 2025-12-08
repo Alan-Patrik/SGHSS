@@ -7,16 +7,20 @@ import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
 import com.alanpatrik.sghss.api.model.Leito;
 import com.alanpatrik.sghss.api.model.Paciente;
 import com.alanpatrik.sghss.api.model.ProfissionalSaude;
+import com.alanpatrik.sghss.api.model.dto.LeitoDTO;
 import com.alanpatrik.sghss.api.model.dto.request.LeitoAdicionarPacienteRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.request.LeitoAdicionarProfissionalRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.request.LeitoRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.request.LeitoUpdateRequestDTO;
-import com.alanpatrik.sghss.api.model.dto.response.LeitoResponseDTO;
 import com.alanpatrik.sghss.api.repository.LeitoRepository;
+import com.alanpatrik.sghss.api.security.anotation.RequireRoles;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -28,23 +32,35 @@ public class LeitoService {
     private final ProfissionalSaudeService profissionalSaudeService;
     private final PacienteService pacienteService;
 
-    public List<LeitoResponseDTO> getAll() {
-        return leitoRepository.findAll().stream().map(Leito::toResponseDTO).toList();
+    @Transactional(readOnly = true)
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    public List<LeitoDTO> getAll() {
+        return leitoRepository.findAll().stream().map(Leito::toDTO).toList();
     }
 
-    public LeitoResponseDTO findById(Long id) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
+    public LeitoDTO findById(Long id) {
         var leito = leitoRepository.findById(id).orElseThrow(() ->
-                new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
-        return Leito.toResponseDTO(leito);
+                new InformacaoNaoEncontradaException(
+                        Constantes.LEITO_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id))
+                ));
+        return Leito.toDTO(leito);
     }
 
-    public LeitoResponseDTO findByNumero(String numero) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
+    public LeitoDTO findByNumero(String numero) {
         var leito = leitoRepository.findLeitoByNumero(numero).orElseThrow(() ->
-                new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
-        return Leito.toResponseDTO(leito);
+                new InformacaoNaoEncontradaException(
+                        Constantes.LEITO_NOT_FOUND_BY_NUMERO_MESSAGE.replace("%s", numero)
+                ));
+        return Leito.toDTO(leito);
     }
 
-    public LeitoResponseDTO save(LeitoRequestDTO leitoRequestDTO) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public LeitoDTO save(LeitoRequestDTO leitoRequestDTO) {
         this.validarParametrosObrigatorios(leitoRequestDTO);
         this.existsLeitoByNumero(leitoRequestDTO.getNumero());
 
@@ -52,21 +68,23 @@ public class LeitoService {
         var leito = Leito.builder()
                 .numero(leitoRequestDTO.getNumero())
                 .unidadeSaude(unidadeSaude)
-                .pacientes(new ArrayList<>())
-                .profissionaisSaude(new ArrayList<>())
+                .pacientes(new LinkedHashSet<>())
+                .profissionaisSaude(new HashSet<>())
                 .build();
 
         leito = leitoRepository.save(leito);
-        return Leito.toResponseDTO(leito);
+        return Leito.toDTO(leito);
     }
 
-    public LeitoResponseDTO addProfissionalSaude(LeitoAdicionarProfissionalRequestDTO leitoAdicionarProfissionalRequestDTO) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public LeitoDTO addProfissionalSaude(LeitoAdicionarProfissionalRequestDTO leitoAdicionarProfissionalRequestDTO) {
         this.validarParametrosObrigatorios(leitoAdicionarProfissionalRequestDTO);
 
-        var leito = Leito.toEntity(this.findByNumero(leitoAdicionarProfissionalRequestDTO.getNumeroLeito()));
+        var leito = Leito.toEntityResponse(this.findByNumero(leitoAdicionarProfissionalRequestDTO.getNumeroLeito()));
         var profissionalSaude = profissionalSaudeService.findByCRM(leitoAdicionarProfissionalRequestDTO.getCRM());
 
-        var profissionaisSaude = new ArrayList<ProfissionalSaude>();
+        var profissionaisSaude = new HashSet<ProfissionalSaude>();
         if (leito.getProfissionaisSaude() != null && !leito.getProfissionaisSaude().isEmpty()) {
             for (var profissionalSaudeDTO : leito.getProfissionaisSaude()) {
                 if (profissionalSaudeDTO.getCRM().equals(leitoAdicionarProfissionalRequestDTO.getCRM())) {
@@ -80,16 +98,18 @@ public class LeitoService {
         leito.setProfissionaisSaude(profissionaisSaude);
         leito = leitoRepository.save(leito);
 
-        return Leito.toResponseDTO(leito);
+        return Leito.toDTO(leito);
     }
 
-    public LeitoResponseDTO addPaciente(LeitoAdicionarPacienteRequestDTO leitoAdicionarPacienteRequestDTO) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public LeitoDTO addPaciente(LeitoAdicionarPacienteRequestDTO leitoAdicionarPacienteRequestDTO) {
         this.validarParametrosObrigatorios(leitoAdicionarPacienteRequestDTO);
 
-        var leito = Leito.toEntity(this.findByNumero(leitoAdicionarPacienteRequestDTO.getNumeroLeito()));
+        var leito = Leito.toEntityResponse(this.findByNumero(leitoAdicionarPacienteRequestDTO.getNumeroLeito()));
         var paciente = pacienteService.findByName(leitoAdicionarPacienteRequestDTO.getNomePaciente());
 
-        var pacientes = new ArrayList<Paciente>();
+        var pacientes = new LinkedHashSet<Paciente>();
         if (leito.getPacientes() != null && !leito.getPacientes().isEmpty()) {
             for (var pacienteDTO : leito.getPacientes()) {
                 if (pacienteDTO.getNome().equals(leitoAdicionarPacienteRequestDTO.getNomePaciente())) {
@@ -103,34 +123,38 @@ public class LeitoService {
         leito.setPacientes(pacientes);
         leito = leitoRepository.save(leito);
 
-        return Leito.toResponseDTO(leito);
+        return Leito.toDTO(leito);
     }
 
-    public LeitoResponseDTO update(Long id, LeitoUpdateRequestDTO leitoUpdateRequestDTO) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public LeitoDTO update(Long id, LeitoUpdateRequestDTO leitoUpdateRequestDTO) {
         if (leitoUpdateRequestDTO.getNumero() == null ||
                 leitoUpdateRequestDTO.getNumero().isEmpty() ||
                 leitoUpdateRequestDTO.getNumero().isBlank()) {
             throw new ParametroInvalidoException("O campo Número do leito é obrigatório.");
         }
 
-        var leito = Leito.toEntity(this.findById(id));
+        var leito = Leito.toEntityResponse(this.findById(id));
         this.existsLeitoByNumero(leitoUpdateRequestDTO.getNumero());
 
         leito.setNumero(leitoUpdateRequestDTO.getNumero());
         leito = leitoRepository.save(leito);
 
-        return Leito.toResponseDTO(leito);
+        return Leito.toDTO(leito);
     }
 
-    public LeitoResponseDTO deleteProfissionalSaude(String crm, String numeroLeito) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public String removerProfissionalSaude(String crm, String numeroLeito) {
         if (numeroLeito == null || numeroLeito.isEmpty() || numeroLeito.isBlank()) {
             throw new ParametroInvalidoException("O campo Número do leito é obrigatório.");
         }
 
-        var leito = Leito.toEntity(this.findByNumero(numeroLeito));
+        var leito = Leito.toEntityResponse(this.findByNumero(numeroLeito));
         var profissionalSaude = profissionalSaudeService.findByCRM(crm);
 
-        var profissionaisSaude = new ArrayList<ProfissionalSaude>();
+        var profissionaisSaude = new HashSet<ProfissionalSaude>();
         var containsProfissionalSaude = false;
         if (leito.getProfissionaisSaude() != null) {
             for (var profissionalSaudeDTO : leito.getProfissionaisSaude()) {
@@ -151,16 +175,18 @@ public class LeitoService {
         leito = leitoRepository.save(leito);
 
         leito.getProfissionaisSaude().remove(profissionalSaude);
-        return Leito.toResponseDTO(leito);
+        return "Profissional de Saúde removido com sucesso!";
     }
 
-    public LeitoResponseDTO deletePaciente(String nomePaciente, String numeroLeito) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public String removerPaciente(String nomePaciente, String numeroLeito) {
         this.validarParametrosObrigatorios(numeroLeito, nomePaciente);
 
-        var leito = Leito.toEntity(this.findByNumero(numeroLeito));
+        var leito = Leito.toEntityResponse(this.findByNumero(numeroLeito));
         var paciente = pacienteService.findByName(nomePaciente);
 
-        var pacientes = new ArrayList<Paciente>();
+        var pacientes = new LinkedHashSet<Paciente>();
         var containsPaciente = false;
         if (leito.getPacientes() != null) {
             for (var pacienteDTO : leito.getPacientes()) {
@@ -181,9 +207,11 @@ public class LeitoService {
         leito = leitoRepository.save(leito);
 
         leito.getPacientes().remove(paciente);
-        return Leito.toResponseDTO(leito);
+        return "Paciente removido com sucesso";
     }
 
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
     public void delete(Long id) {
         var leito = this.findById(id);
         leitoRepository.deleteById(leito.getId());

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Consulta online</title>
+</head>
+<body style="font-family: Arial, sans-serif; color:#333; line-height: 1.5;">
+<p>Olá, <strong th:text="${nome}">Paciente</strong>!</p>
+
+<p>
+    Sua <strong>consulta online</strong> de
+    <span th:text="${especialidade}">Especialidade</span>
+    está marcada para <strong th:text="${#temporals.format(dataHora, 'dd/MM/yyyy HH:mm')}">data</strong>.
+</p>
+
+<p>
+    Para participar, acesse este link no horário agendado:<br/>
+    ${meetingUrl}Link da consulta</a>
+</p>
+
+<div th:if="${expiraEm}">
+    <p><small>Validade do link: <span th:text="${#temporals.format(expiraEm, 'dd/MM/yyyy HH:mm')}"></span></small></p>
+</div>
+
+<div th:if="${local}">
+    <p><small>Unidade/Origem: <span th:text="${local}"></span></small></p>
+</div>
+
+<hr/>
+<small th:text="${projeto} + ' • Este é um e-mail automático'">SGHSS</small>
+</body>
+</html>

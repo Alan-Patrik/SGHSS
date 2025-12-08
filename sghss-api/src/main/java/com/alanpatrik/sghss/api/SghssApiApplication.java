@@ -9,8 +9,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class SghssApiApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SghssApiApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(SghssApiApplication.class, args);
+    }
 
 }

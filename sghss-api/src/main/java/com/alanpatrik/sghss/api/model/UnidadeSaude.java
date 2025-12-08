@@ -1,11 +1,13 @@
 package com.alanpatrik.sghss.api.model;
 
+import com.alanpatrik.sghss.api.model.dto.UnidadeSaudeDTO;
 import com.alanpatrik.sghss.api.model.dto.response.UnidadeSaudeResponseDTO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Builder
 @AllArgsConstructor
@@ -17,7 +19,7 @@ import java.util.List;
 public class UnidadeSaude {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID_INIDADE_SAUDE", nullable = false)
+    @Column(name = "ID_UNIDADE_SAUDE", nullable = false)
     private Long id;
 
     @Column(name = "TXT_NOME", nullable = false)
@@ -28,19 +30,20 @@ public class UnidadeSaude {
 
     @JsonIgnore
     @OneToMany(mappedBy = "unidadeSaude")
-    private List<Leito> leitos;
+    private Set<Leito> leitos = new LinkedHashSet<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy = "unidadeSaude")
-    private List<ProfissionalSaude> profissionais;
+    @ManyToMany(mappedBy = "unidades")
+    private Set<ProfissionalSaude> profissionais = new LinkedHashSet<>();
+
+    @JsonIgnore
+    @ManyToMany(mappedBy = "unidades")
+    private Set<Paciente> pacientes = new LinkedHashSet<>();
 
     public static UnidadeSaudeResponseDTO toResponseDTO(UnidadeSaude unidadeSaude) {
         var unidadeSaudeResponseDTO = new UnidadeSaudeResponseDTO();
         unidadeSaudeResponseDTO.setId(unidadeSaude.getId());
         unidadeSaudeResponseDTO.setNome(unidadeSaude.getNome());
-        unidadeSaudeResponseDTO.setEndereco(unidadeSaude.getEndereco());
-        unidadeSaudeResponseDTO.setProfissionais(unidadeSaude.getProfissionais());
-        unidadeSaudeResponseDTO.setLeitos(unidadeSaude.getLeitos());
 
         return unidadeSaudeResponseDTO;
     }
@@ -49,9 +52,29 @@ public class UnidadeSaude {
         var unidadeSaude = new UnidadeSaude();
         unidadeSaude.setId(unidadeSaudeResponseDTO.getId());
         unidadeSaude.setNome(unidadeSaudeResponseDTO.getNome());
-        unidadeSaude.setEndereco(unidadeSaudeResponseDTO.getEndereco());
-        unidadeSaude.setProfissionais(unidadeSaudeResponseDTO.getProfissionais());
-        unidadeSaude.setLeitos(unidadeSaudeResponseDTO.getLeitos());
+
+        return unidadeSaude;
+    }
+
+    public static UnidadeSaudeDTO toDTO(UnidadeSaude unidadeSaude) {
+        var unidadeSaudeDTO = new UnidadeSaudeDTO();
+        unidadeSaudeDTO.setId(unidadeSaude.getId());
+        unidadeSaudeDTO.setNome(unidadeSaude.getNome());
+        unidadeSaudeDTO.setEndereco(unidadeSaude.getEndereco());
+        unidadeSaudeDTO.setProfissionais(ProfissionalSaude.toResponseDTOList(unidadeSaude.getProfissionais()));
+        unidadeSaudeDTO.setLeitos(Leito.toResponseDTOList(unidadeSaude.getLeitos()));
+        unidadeSaudeDTO.setPacientes(Paciente.toResponseDTOList(unidadeSaude.getPacientes()));
+
+        return unidadeSaudeDTO;
+    }
+
+    public static UnidadeSaude toEntityResponse(UnidadeSaudeDTO unidadeSaudeDTO) {
+        var unidadeSaude = new UnidadeSaude();
+        unidadeSaude.setId(unidadeSaudeDTO.getId());
+        unidadeSaude.setNome(unidadeSaudeDTO.getNome());
+        unidadeSaude.setEndereco(unidadeSaudeDTO.getEndereco());
+        unidadeSaude.setProfissionais(ProfissionalSaude.toEntityList(unidadeSaudeDTO.getProfissionais()));
+        unidadeSaude.setLeitos(Leito.toEntityList(unidadeSaudeDTO.getLeitos()));
 
         return unidadeSaude;
     }
