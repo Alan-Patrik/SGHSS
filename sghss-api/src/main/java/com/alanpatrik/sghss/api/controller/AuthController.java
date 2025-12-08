@@ -1,9 +1,9 @@
 package com.alanpatrik.sghss.api.controller;
 
+import com.alanpatrik.sghss.api.model.dto.LoginDTO;
 import com.alanpatrik.sghss.api.model.dto.request.LoginRequestDTO;
-import com.alanpatrik.sghss.api.model.dto.response.LoginResponseDTO;
 import com.alanpatrik.sghss.api.service.AuthService;
-import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +20,11 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
-        var loginResponseDTO = authService.login(loginRequestDTO);
+    public ResponseEntity<LoginDTO> login(
+            @Parameter(example = "loginRequestDTO", description = "Objeto Login", required = true, name = "loginRequestDTO") @RequestBody LoginRequestDTO loginRequestDTO
+    ) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(loginResponseDTO);
+                .body(authService.login(loginRequestDTO));
     }
 }

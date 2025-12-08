@@ -1,8 +1,8 @@
 package com.alanpatrik.sghss.api.service;
 
 import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
+import com.alanpatrik.sghss.api.model.dto.LoginDTO;
 import com.alanpatrik.sghss.api.model.dto.request.LoginRequestDTO;
-import com.alanpatrik.sghss.api.model.dto.response.LoginResponseDTO;
 import com.alanpatrik.sghss.api.security.jwt.JwtProperties;
 import com.alanpatrik.sghss.api.security.jwt.JwtTokenService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ public class AuthService {
     private final JwtTokenService tokenService;
     private final JwtProperties jwtProperties;
 
-    public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) {
+    public LoginDTO login(LoginRequestDTO loginRequestDTO) {
         this.validarParametrosObrigatorios(loginRequestDTO);
 
         var authenticate = authManager.authenticate(
@@ -28,7 +28,7 @@ public class AuthService {
 
         var user = (UserDetails) authenticate.getPrincipal();
         String token = tokenService.generateToken(user);
-        return new LoginResponseDTO(token, jwtProperties.getExpirationMinutes());
+        return new LoginDTO(token, jwtProperties.getExpirationMinutes());
     }
 
     private void validarParametrosObrigatorios(LoginRequestDTO loginRequestDTO) {

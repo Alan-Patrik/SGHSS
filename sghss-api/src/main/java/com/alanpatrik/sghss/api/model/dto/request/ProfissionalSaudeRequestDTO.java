@@ -27,4 +27,5 @@ public class ProfissionalSaudeRequestDTO {
     private Especialidade especialidade;
     private AreaAtuacao areaAtuacao;
     private String CRM;
+    private String nomeUnidadeSaude;
 }

@@ -1,15 +1,16 @@
 package com.alanpatrik.sghss.api.model;
 
-import com.alanpatrik.sghss.api.model.dto.response.ConsultaResponseDTO;
+import com.alanpatrik.sghss.api.model.dto.ConsultaDTO;
 import com.alanpatrik.sghss.api.model.enums.AreaAtuacao;
 import com.alanpatrik.sghss.api.model.enums.StatusConsulta;
 import com.alanpatrik.sghss.api.model.enums.TipoConsulta;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Builder
 @NoArgsConstructor
@@ -38,42 +39,68 @@ public class Consulta {
     @Enumerated(EnumType.STRING)
     private StatusConsulta statusConsulta;
 
+    @Column(name = "TXT_TOKEN_USUARIO")
+    private String tokenUsuario;
+
+    @Column(name = "TXT_TOKEN_EXPIRES_AT")
+    private LocalDateTime joinTokenExpiresAt;
+
+    @Column(name = "TXT_MEETING_URL")
+    private String meetingUrl;
+
     @ManyToOne
     @JoinColumn(name = "ID_PACIENTE")
     private Paciente paciente;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ID_PROFISSIONAL_SAUDE")
     private ProfissionalSaude profissionalSaude;
 
-    public static Consulta toEntity(ConsultaResponseDTO consultaResponseDTO) {
+    @OneToOne(mappedBy = "consulta", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Pagamento pagamento;
+
+    public static ConsultaDTO toDTO(Consulta consulta) {
+        var consultaDTO = new ConsultaDTO();
+        consultaDTO.setId(consulta.getId());
+        consultaDTO.setDataHoraConsulta(consulta.getDataHoraConsulta());
+        consultaDTO.setAreaAtuacao(consulta.getAreaAtuacao());
+        consultaDTO.setStatusConsulta(consulta.getStatusConsulta());
+        consultaDTO.setTipoConsulta(consulta.getTipoConsulta());
+        consultaDTO.setCRM(consulta.getProfissionalSaude().getCRM());
+        consultaDTO.setNomePaciente(consulta.getPaciente().getNome());
+        consultaDTO.setToken(consulta.getTokenUsuario());
+        consultaDTO.setJoinTokenExpiresAt(consulta.getJoinTokenExpiresAt());
+        consultaDTO.setMeetingURL(consulta.getMeetingUrl());
+
+        return consultaDTO;
+    }
+
+    public static Consulta toEntity(ConsultaDTO consultaDTO) {
         var consulta = new Consulta();
-        consulta.setId(consultaResponseDTO.getId());
-        consulta.setDataHoraConsulta(consultaResponseDTO.getDataHoraConsulta());
-        consulta.setAreaAtuacao(consultaResponseDTO.getAreaAtuacao());
-        consulta.setTipoConsulta(consultaResponseDTO.getTipoConsulta());
-        consulta.setStatusConsulta(consultaResponseDTO.getStatusConsulta());
+        consulta.setId(consultaDTO.getId());
+        consulta.setDataHoraConsulta(consultaDTO.getDataHoraConsulta());
+        consulta.setAreaAtuacao(consultaDTO.getAreaAtuacao());
+        consulta.setTipoConsulta(consultaDTO.getTipoConsulta());
+        consulta.setStatusConsulta(consultaDTO.getStatusConsulta());
+
         return consulta;
     }
 
-    public static ConsultaResponseDTO toResponseDTO(Consulta consulta) {
-        var consultaResponseDTO = new ConsultaResponseDTO();
-        consultaResponseDTO.setId(consulta.getId());
-        consultaResponseDTO.setDataHoraConsulta(consulta.getDataHoraConsulta());
-        consultaResponseDTO.setAreaAtuacao(consulta.getAreaAtuacao());
-        consultaResponseDTO.setStatusConsulta(consulta.getStatusConsulta());
-        consultaResponseDTO.setTipoConsulta(consulta.getTipoConsulta());
-        consultaResponseDTO.setCRM(consulta.profissionalSaude.getCRM());
-        consultaResponseDTO.setNomePaciente(consulta.getPaciente().getNome());
-        return consultaResponseDTO;
+    public static Set<ConsultaDTO> toDTOList(Set<Consulta> Consultas) {
+        var consultaDTOList = new LinkedHashSet<ConsultaDTO>();
+        for (var consulta : Consultas) {
+            var consultaDTO = toDTO(consulta);
+            consultaDTOList.add(consultaDTO);
+        }
+        return consultaDTOList;
     }
 
-    public static List<ConsultaResponseDTO> responseToDTOList(List<Consulta> Consultas) {
-        var consultaResponseDTOList = new ArrayList<ConsultaResponseDTO>();
-        for (var consulta : Consultas) {
-            var consultaResponseDTO = toResponseDTO(consulta);
-            consultaResponseDTOList.add(consultaResponseDTO);
+    public void vincularPagamento(Pagamento pagamento) {
+        if (pagamento != null) {
+            pagamento.setConsulta(this);
+            pagamento.setExame(null);
+            this.pagamento = pagamento;
         }
-        return consultaResponseDTOList;
     }
 }

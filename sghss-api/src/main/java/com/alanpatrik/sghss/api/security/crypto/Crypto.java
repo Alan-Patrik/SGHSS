@@ -13,9 +13,9 @@ public class Crypto {
 
         var parteInicial = digitos.substring(3, 6);
         var parteMeio = digitos.substring(6, 9);
-        var parteFinal = digitos.substring(9, 11);
+//        var parteFinal = digitos.substring(9, 11);
 
-        return String.format("***.%s.%s-%s", parteInicial, parteMeio, parteFinal);
+        return String.format("***.%s.%s-**", parteInicial, parteMeio);
     }
 
     // Aplica máscara "**@dominio.com"

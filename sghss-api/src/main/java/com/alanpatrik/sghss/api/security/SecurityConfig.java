@@ -1,5 +1,7 @@
 package com.alanpatrik.sghss.api.security;
 
+import com.alanpatrik.sghss.api.exception.handler.CustomAccessDeniedHandler;
+import com.alanpatrik.sghss.api.exception.handler.UnauthorizedAuthenticationEntryPoint;
 import com.alanpatrik.sghss.api.security.jwt.JwtAuthenticationFilter;
 import com.alanpatrik.sghss.api.security.jwt.JwtTokenService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,6 +25,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtTokenService tokenService;
+    private final UnauthorizedAuthenticationEntryPoint unauthorizedEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -49,18 +54,25 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 // adiciona filtro JWT antes do filtro padrão de username/password
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(unauthorizedEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
+                )
+                .sessionManagement(sm -> sm.sessionCreationPolicy(
+                        SessionCreationPolicy.STATELESS
+                ));
+
 
         return http.build();
     }
 
-    // AuthenticationManager para o login
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
         return cfg.getAuthenticationManager();
     }
 
-    // Encoder de senhas
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

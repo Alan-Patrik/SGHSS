@@ -1,7 +1,6 @@
 package com.alanpatrik.sghss.api.model.dto.request;
 
 import com.alanpatrik.sghss.api.model.enums.AreaAtuacao;
-import com.alanpatrik.sghss.api.model.enums.TipoConsulta;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +17,6 @@ public class ConsultaUpdateRequestDTO {
     private LocalDateTime dataHoraConsultaAntiga;
     private LocalDateTime dataHoraNovaConsulta;
     private AreaAtuacao areaAtuacao;
-    private TipoConsulta tipoConsulta;
     private String nomePaciente;
     private String CRM;
 }

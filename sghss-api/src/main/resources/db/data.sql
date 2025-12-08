@@ -30,7 +30,10 @@ VALUES
 (111, 'SGHSS.GERAR_RELATORIOS'),
 (112, 'SGHSS.GERENCIAR_SEGURANCA'),
 (113, 'SGHSS.ATUALIZAR_PACIENTE'),
-(114, 'SGHSS.CANCELAR_CONSULTA')
+(114, 'SGHSS.CANCELAR_CONSULTA'),
+(115, 'SGHSS.VISUALIZAR_PACIENTE'),
+(116, 'SGHSS.PAGAR_CONSULTA'),
+(117, 'SGHSS.PAGAR_EXAME')
 ;
 
 -- ADMIN SISTEMA (101)
@@ -48,7 +51,10 @@ VALUES (101, 101),
        (101, 111),
        (101, 112),
        (101, 113),
-       (101, 114)
+       (101, 114),
+       (101, 115),
+       (101, 116),
+       (101, 117)
 ;
 
 
@@ -58,7 +64,8 @@ VALUES (102, 102),
        (102, 103),
        (102, 104),
        (102, 105),
-       (102, 108)
+       (102, 108),
+       (102, 115)
 ;
 
 
@@ -67,14 +74,16 @@ INSERT INTO ROLE_PRIVILEGIO (ID_ROLE, ID_PRIVILEGIO)
 VALUES (103, 102),
        (103, 103),
        (103, 105),
-       (103, 108)
+       (103, 108),
+       (103, 115)
 ;
 
 
 -- TÉCNICO (104)
 INSERT INTO ROLE_PRIVILEGIO (ID_ROLE, ID_PRIVILEGIO)
 VALUES (104, 102),
-       (104, 103)
+       (104, 103),
+       (104, 115)
 ;
 
 
@@ -86,7 +95,10 @@ VALUES (105, 101),
        (105, 107),
        (105, 108),
        (105, 113),
-       (105, 114)
+       (105, 114),
+       (105, 115),
+       (105, 116),
+       (105, 117)
 ;
 
 
@@ -96,7 +108,8 @@ VALUES (106, 102),
        (106, 103),
        (106, 104),
        (106, 105),
-       (106, 108)
+       (106, 108),
+       (106, 115)
 ;
 
 

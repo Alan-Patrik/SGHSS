@@ -8,7 +8,10 @@ import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import static java.util.stream.Collectors.toSet;
 
 @Builder
 @AllArgsConstructor
@@ -42,8 +45,8 @@ public class Prontuario {
     @JoinColumn(name = "ID_PACIENTE")
     private Paciente paciente;
 
-    @OneToMany(mappedBy = "prontuario", fetch = FetchType.LAZY)
-    private List<Prescricao> prescricoes;
+    @OneToMany(mappedBy = "prontuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Prescricao> prescricoes = new LinkedHashSet<>();
 
     public static ProntuarioResponseDTO toResponseDTO(Prontuario prontuario) {
         var prontuarioResponseDTO = new ProntuarioResponseDTO();
@@ -55,7 +58,7 @@ public class Prontuario {
         prontuarioResponseDTO.setPrescricoes(prontuario.getPrescricoes()
                 .stream()
                 .map(Prescricao::toResponseDTO)
-                .toList());
+                .collect(toSet()));
 
         return prontuarioResponseDTO;
     }

@@ -1,7 +1,9 @@
 package com.alanpatrik.sghss.api.model;
 
-import com.alanpatrik.sghss.api.model.dto.response.HistoricoPacienteResponseDTO;
+import com.alanpatrik.sghss.api.model.dto.HistoricoPacienteDTO;
+import com.alanpatrik.sghss.api.model.dto.PacienteDTO;
 import com.alanpatrik.sghss.api.model.dto.response.PacienteResponseDTO;
+import com.alanpatrik.sghss.api.security.crypto.Crypto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -9,8 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @NoArgsConstructor
 @Getter
@@ -23,16 +25,27 @@ public class Paciente extends Pessoa {
     @Column(name = "ID_PACIENTE", nullable = false)
     private Long id;
 
-    @OneToOne(mappedBy = "paciente")
+    @OneToOne(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
     private Prontuario prontuario;
 
-    @OneToMany(mappedBy = "paciente")
-    @JsonIgnore
-    private List<Consulta> consultas;
 
-    @OneToMany(mappedBy = "paciente")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "PACIENTE_UNIDADE_SAUDE",
+            joinColumns = @JoinColumn(name = "ID_PACIENTE", referencedColumnName = "ID_PACIENTE"),
+            inverseJoinColumns = @JoinColumn(name = "ID_UNIDADE_SAUDE", referencedColumnName = "ID_UNIDADE_SAUDE")
+    )
     @JsonIgnore
-    private List<Exame> exames;
+    private Set<UnidadeSaude> unidades = new LinkedHashSet<>();
+
+
+    @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<Consulta> consultas = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<Exame> exames = new LinkedHashSet<>();
 
     public Paciente(
             String nome,
@@ -44,11 +57,13 @@ public class Paciente extends Pessoa {
             LocalDateTime dataCriacao,
             LocalDateTime dataModificacao,
             Prontuario prontuario,
-            List<Consulta> consultas,
-            List<Exame> exames
+            Set<UnidadeSaude> unidades,
+            Set<Consulta> consultas,
+            Set<Exame> exames
     ) {
         super(nome, cpf, dataNascimento, telefone, email, endereco, dataCriacao, dataModificacao);
         this.prontuario = prontuario;
+        this.unidades = unidades;
         this.consultas = consultas;
         this.exames = exames;
     }
@@ -57,29 +72,22 @@ public class Paciente extends Pessoa {
         var pacienteResponseDTO = new PacienteResponseDTO();
         pacienteResponseDTO.setId(paciente.getId());
         pacienteResponseDTO.setNome(paciente.getNome());
-        pacienteResponseDTO.setCpf(paciente.getCpf());
-        pacienteResponseDTO.setDataNascimento(paciente.getDataNascimento());
-        pacienteResponseDTO.setTelefone(paciente.getTelefone());
-        pacienteResponseDTO.setEmail(paciente.getEmail());
-        pacienteResponseDTO.setEndereco(paciente.getEndereco());
-        pacienteResponseDTO.setDataCriacao(paciente.getDataCriacao());
-        pacienteResponseDTO.setDataModificacao(paciente.getDataModificacao());
         return pacienteResponseDTO;
     }
 
-    public static HistoricoPacienteResponseDTO toHistoricoPacienteResponseDTO(Paciente paciente) {
-        var historicoPacienteResponseDTO = new HistoricoPacienteResponseDTO();
+    public static HistoricoPacienteDTO toHistoricoPacienteResponseDTO(Paciente paciente) {
+        var historicoPacienteResponseDTO = new HistoricoPacienteDTO();
         historicoPacienteResponseDTO.setId(paciente.getId());
         historicoPacienteResponseDTO.setNome(paciente.getNome());
-        historicoPacienteResponseDTO.setCpf(paciente.getCpf());
+        historicoPacienteResponseDTO.setCpf(Crypto.mascararCpf(paciente.getCpf()));
         historicoPacienteResponseDTO.setDataNascimento(paciente.getDataNascimento());
         historicoPacienteResponseDTO.setTelefone(paciente.getTelefone());
-        historicoPacienteResponseDTO.setEmail(paciente.getEmail());
+        historicoPacienteResponseDTO.setEmail(Crypto.mascararEmail(paciente.getEmail()));
         historicoPacienteResponseDTO.setEndereco(paciente.getEndereco());
         historicoPacienteResponseDTO.setDataCriacao(paciente.getDataCriacao());
         historicoPacienteResponseDTO.setDataModificacao(paciente.getDataModificacao());
-        historicoPacienteResponseDTO.setProntuario(paciente.getProntuario());
-        historicoPacienteResponseDTO.setExames(paciente.getExames());
+        historicoPacienteResponseDTO.setProntuario(Prontuario.toResponseDTO(paciente.getProntuario()));
+        historicoPacienteResponseDTO.setExames(Exame.toResponseDTOList(paciente.getExames()));
         return historicoPacienteResponseDTO;
     }
 
@@ -87,41 +95,50 @@ public class Paciente extends Pessoa {
         var paciente = new Paciente();
         paciente.setId(pacienteResponseDTO.getId());
         paciente.setNome(pacienteResponseDTO.getNome());
-        paciente.setCpf(pacienteResponseDTO.getCpf());
-        paciente.setDataNascimento(pacienteResponseDTO.getDataNascimento());
-        paciente.setTelefone(pacienteResponseDTO.getTelefone());
-        paciente.setEmail(pacienteResponseDTO.getEmail());
-        paciente.setEndereco(pacienteResponseDTO.getEndereco());
-        paciente.setDataCriacao(pacienteResponseDTO.getDataCriacao());
-        paciente.setDataModificacao(pacienteResponseDTO.getDataModificacao());
         return paciente;
     }
 
-    public static List<PacienteResponseDTO> toResponseDTOList(List<Paciente> pacientes) {
-        var pacienteResponseDTOs = new ArrayList<PacienteResponseDTO>();
+    public static Set<PacienteResponseDTO> toResponseDTOList(Set<Paciente> pacientes) {
+        var pacienteDTOs = new LinkedHashSet<PacienteResponseDTO>();
         for (Paciente paciente : pacientes) {
-            pacienteResponseDTOs.add(toResponseDTO(paciente));
+            pacienteDTOs.add(toResponseDTO(paciente));
         }
-        return pacienteResponseDTOs;
+        return pacienteDTOs;
     }
 
-    public static List<Paciente> toEntityList(List<PacienteResponseDTO> pacienteResponseDTOs) {
-        var pacientes = new ArrayList<Paciente>();
+    public static Set<Paciente> toEntityList(Set<PacienteResponseDTO> pacienteResponseDTOs) {
+        var pacientes = new LinkedHashSet<Paciente>();
         for (var pacienteResponseDTO : pacienteResponseDTOs) {
             pacientes.add(toEntity(pacienteResponseDTO));
         }
         return pacientes;
     }
 
-//    public Consulta agendarConsulta(Consulta consulta) {
-//
-//    }
-//
-//    public Consulta cancelarConsulta() {
-//
-//    }
-//
-//    public void acessarTeleconsulta() {
-//
-//    }
+    public static PacienteDTO toDTO(Paciente paciente) {
+        var pacienteDTO = new PacienteDTO();
+        pacienteDTO.setId(paciente.getId());
+        pacienteDTO.setNome(paciente.getNome());
+        pacienteDTO.setCpf(Crypto.mascararCpf(paciente.getCpf()));
+        pacienteDTO.setDataNascimento(paciente.getDataNascimento());
+        pacienteDTO.setTelefone(paciente.getTelefone());
+        pacienteDTO.setEmail(Crypto.mascararEmail(paciente.getEmail()));
+        pacienteDTO.setEndereco(paciente.getEndereco());
+        pacienteDTO.setDataCriacao(paciente.getDataCriacao());
+        pacienteDTO.setDataModificacao(paciente.getDataModificacao());
+        return pacienteDTO;
+    }
+
+    public static Paciente toEntityResponse(PacienteDTO pacienteDTO) {
+        var paciente = new Paciente();
+        paciente.setId(pacienteDTO.getId());
+        paciente.setNome(pacienteDTO.getNome());
+        paciente.setCpf(Crypto.mascararCpf(pacienteDTO.getCpf()));
+        paciente.setDataNascimento(pacienteDTO.getDataNascimento());
+        paciente.setTelefone(pacienteDTO.getTelefone());
+        paciente.setEmail(Crypto.mascararEmail(pacienteDTO.getEmail()));
+        paciente.setEndereco(pacienteDTO.getEndereco());
+        paciente.setDataCriacao(pacienteDTO.getDataCriacao());
+        paciente.setDataModificacao(pacienteDTO.getDataModificacao());
+        return paciente;
+    }
 }

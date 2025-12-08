@@ -2,8 +2,6 @@ package com.alanpatrik.sghss.api.model.dto.request;
 
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -11,10 +9,11 @@ import java.time.LocalDateTime;
 @Setter
 public class AuditoriaRequestDTO {
 
-    private String usuario;
-    private String acao;
-    private String nomeEntidade;
-    private String idEntidade;
+    private String username;
+    private String action;
+    private String resource;
     private String ip;
-    private String detalhes;
+    private String userAgent;
+    private String details;
+    private String httpMethod;
 }

@@ -1,112 +1,26 @@
 package com.alanpatrik.sghss.api.service;
-//
-//import com.alanpatrik.sghss.api.model.dto.request.LoginRequestDTO;
-//import com.alanpatrik.sghss.api.exception.InformacaoNaoEncontradaException;
-//import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
-//import com.alanpatrik.sghss.api.model.Usuario;
-//import com.alanpatrik.sghss.api.model.dto.request.AuditoriaRequestDTO;
-//import com.alanpatrik.sghss.api.model.dto.request.UsuarioRequestDTO;
-//import com.alanpatrik.sghss.api.model.dto.response.TokenResponseDTO;
-//import com.alanpatrik.sghss.api.repository.UsuarioRepository;
-//import com.alanpatrik.sghss.api.util.LogonUtil;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.stereotype.Service;
-//
-//import javax.crypto.SecretKey;
-//import java.time.LocalDateTime;
-//import java.util.Set;
-//import java.util.UUID;
-//
-//import static com.alanpatrik.sghss.api.security.crypto.CpfCrypto.encryptCpf;
-//import static com.alanpatrik.sghss.api.security.crypto.EmailCrypto.encryptEmail;
-//import static com.alanpatrik.sghss.api.security.crypto.Generatekey.generateKey;
-//
-//@Service
-//@RequiredArgsConstructor
-//public class UsuarioService {
-//
-//    private final UsuarioRepository usuarioRepository;
-//    private final PasswordEncoder encoder;
-//    private final AuditoriaService auditoriaService;
-//
-//    public TokenResponseDTO login(LoginRequestDTO loginRequestDTO) {
-//        var usuario = usuarioRepository.findByUsername(loginRequestDTO.getUsername())
-//                .orElseThrow(() -> new InformacaoNaoEncontradaException("Usuário não encontrado."));
-//
-//        if (!encoder.matches(loginRequestDTO.getPassword(), usuario.getPassword())) {
-//            throw new ParametroInvalidoException("Credenciais inválidas.");
-//        }
-//
-//        var token = jwtService.gerar(usuario.getUsername(), usuario.getRoles().stream().toList());
-//        var refresh = UUID.randomUUID().toString();
-//
-//        registrarAuditoria(usuario.getUsername(), "LOGIN", usuario.getId());
-//
-//        return TokenResponseDTO.builder()
-//                .accessToken(token)
-//                .refreshToken(refresh)
-//                .expiresIn(60L * 30)
-//                .build();
-//    }
-//
-//    public String registrarUsuario(UsuarioRequestDTO usuarioRequestDTO) throws Exception {
-//        if (usuarioRepository.findByUsername(usuarioRequestDTO.getUsername()).isPresent()) {
-//            throw new ParametroInvalidoException("Usuário já cadastrado.");
-//        }
-//
-//        SecretKey key = generateKey();
-//        var novoUsuario = Usuario.builder()
-//                .username(usuarioRequestDTO.getUsername())
-//                .password(encoder.encode(usuarioRequestDTO.getPassword()))
-//                .email(encryptEmail(usuarioRequestDTO.getEmail(), key))
-//                .cpf(encryptCpf(usuarioRequestDTO.getCpf(), key))
-//                .roles(Set.of(LogonUtil.LABEL_CONSULTAR_CLIENTE))
-//                .createdAt(LocalDateTime.now())
-//                .updatedAt(LocalDateTime.now())
-//                .status(true)
-//                .build();
-//
-//        usuarioRepository.save(novoUsuario);
-//
-//        registrarAuditoria(novoUsuario.getUsername(), "CADASTRO", novoUsuario.getId());
-//
-//        return "Usuário criado com sucesso!";
-//    }
-//
-//    private void registrarAuditoria(String usuario, String acao, Long idEntidade) {
-//        var auditoriaRequestDTO = AuditoriaRequestDTO.builder()
-//                .usuario(usuario)
-//                .acao(acao)
-//                .nomeEntidade("Usuario")
-//                .idEntidade(String.valueOf(idEntidade))
-//                .ip("-")
-//                .detalhes("sucesso")
-//                .build();
-//
-//        auditoriaService.save(auditoriaRequestDTO);
-//    }
-//}
 
-
+import com.alanpatrik.sghss.api.comum.Constantes;
 import com.alanpatrik.sghss.api.exception.ConflitoException;
 import com.alanpatrik.sghss.api.exception.InformacaoNaoEncontradaException;
 import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
 import com.alanpatrik.sghss.api.model.Usuario;
 import com.alanpatrik.sghss.api.model.UsuarioRole;
-import com.alanpatrik.sghss.api.model.UsuarioRoleId;
 import com.alanpatrik.sghss.api.model.dto.request.UsuarioRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.request.UsuarioUpdateRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.response.UsuarioResponseDTO;
 import com.alanpatrik.sghss.api.repository.RoleRepository;
 import com.alanpatrik.sghss.api.repository.UsuarioRepository;
 import com.alanpatrik.sghss.api.repository.UsuarioRoleRepository;
+import com.alanpatrik.sghss.api.security.anotation.RequireRoles;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @RequiredArgsConstructor
@@ -119,14 +33,25 @@ public class UsuarioService {
     private final UsuarioRoleRepository usuarioRoleRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
+    public List<UsuarioResponseDTO> findAll() {
+        return usuarioRepository.findAll().stream().map(Usuario::toResponseDTO).toList();
+    }
+
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
     @Transactional(readOnly = true)
     public UsuarioResponseDTO findByUsername(String username) {
         var usuario = usuarioRepository.loadUserGraph(username).orElseThrow(() ->
-                new InformacaoNaoEncontradaException("Usuario não encontrado."));
+                new InformacaoNaoEncontradaException(
+                        Constantes.USUARIO_NOT_FOUND_BY_USERNAME_MESSAGE.replace("%s", username)
+                ));
 
         return Usuario.toResponseDTO(usuario);
     }
 
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public String save(UsuarioRequestDTO usuarioRequestDTO) {
         this.validarParametrosObrigatorios(usuarioRequestDTO);
         this.validarInformacoesUsuario(usuarioRequestDTO.getUsername(), usuarioRequestDTO.getEmail());
@@ -141,16 +66,20 @@ public class UsuarioService {
                 .status(true)
                 .build();
 
-        usuario = usuarioRepository.save(usuario);
+        usuarioRepository.save(usuario);
 
         return "Usuário criado com sucesso!";
     }
 
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public String update(Long id, UsuarioUpdateRequestDTO usuarioUpdateRequestDTO) {
         this.validarParametrosObrigatorios(usuarioUpdateRequestDTO);
 
         var usuario = usuarioRepository.findById(id).orElseThrow(() ->
-                new InformacaoNaoEncontradaException("Usuário não encontrado."));
+                new InformacaoNaoEncontradaException(
+                        Constantes.USUARIO_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id))
+                ));
 
         this.validarInformacoesUsuario(usuarioUpdateRequestDTO.getUsername(), usuarioUpdateRequestDTO.getEmail());
 
@@ -159,45 +88,70 @@ public class UsuarioService {
         usuario.setEmail(usuarioUpdateRequestDTO.getEmail());
         usuario.setDataModificacao(LocalDateTime.now());
 
-        usuario = usuarioRepository.save(usuario);
+        usuarioRepository.save(usuario);
 
         return "Usuário atualizado com sucesso!";
     }
 
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
     public String delete(Long id) {
         var usuario = usuarioRepository.findById(id).orElseThrow(() ->
-                new InformacaoNaoEncontradaException("Usuário não encontrado."));
+                new InformacaoNaoEncontradaException(
+                        Constantes.USUARIO_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id)))
+        );
 
         usuario.setStatus(false);
         usuario.setDataModificacao(LocalDateTime.now());
 
-        usuario = usuarioRepository.save(usuario);
+        usuarioRepository.save(usuario);
 
-        return "Usuário atualizado com sucesso!";
+        return "Usuário deletado com sucesso.";
     }
 
-    public void assignRoleToUser(Long userId, Long roleId) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public String assignRoleToUser(Long userId, Long roleId) {
         var usuario = usuarioRepository.findById(userId).orElseThrow(() ->
-                new InformacaoNaoEncontradaException("Usuário não encontrado."));
+                new InformacaoNaoEncontradaException(
+                        Constantes.USUARIO_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(userId))
+                ));
 
         var role = roleRepository.findById(roleId).orElseThrow(() ->
-                new InformacaoNaoEncontradaException("Role não encontrada."));
+                new InformacaoNaoEncontradaException(
+                        Constantes.ROLE_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(roleId))
+                ));
 
         var usuarioRole = UsuarioRole.builder()
                 .role(role)
                 .usuario(usuario)
                 .build();
 
-        usuarioRole = usuarioRoleRepository.save(usuarioRole);
+        usuarioRoleRepository.save(usuarioRole);
+        return "Role atribuída ao usuário com sucesso.";
     }
 
-    public void removeRoleFromUser(Long userId, Long roleId) {
-        var usuarioRoleId = UsuarioRoleId.builder()
-                .roleId(roleId)
-                .usuarioId(userId)
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public String removeRoleFromUser(Long userId, Long roleId) {
+        var usuario = usuarioRepository.findById(userId).orElseThrow(() ->
+                new InformacaoNaoEncontradaException(
+                        Constantes.USUARIO_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(userId))));
+
+        var role = roleRepository.findById(roleId).orElseThrow(() ->
+                new InformacaoNaoEncontradaException(
+                        Constantes.ROLE_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(roleId))));
+
+        usuario.getUsuarioRoles().removeIf(usuarioRole ->
+                usuarioRole.getRole().getId().equals(roleId));
+
+        var usuarioRole = UsuarioRole.builder()
+                .role(role)
+                .usuario(usuario)
                 .build();
 
-        usuarioRoleRepository.findById(usuarioRoleId).ifPresent(usuarioRoleRepository::delete);
+        usuarioRoleRepository.delete(usuarioRole);
+        return "Role removido do usuário com sucesso.";
     }
 
     private void validarInformacoesUsuario(String username, String email) {

@@ -21,22 +21,24 @@
 -- -- ====================================================================
 -- -- AUDITORIA
 -- -- ====================================================================
--- CREATE TABLE AUDITORIA
--- (
---     ID_AUDITORIA      BIGINT       NOT NULL AUTO_INCREMENT,
---     TXT_USUARIO       VARCHAR(255) NOT NULL,
---     TXT_ACAO          VARCHAR(255) NOT NULL,
---     TXT_NOME_ENTIDADE VARCHAR(255) NOT NULL,
---     TXT_ID_ENTIDADE   VARCHAR(255) NOT NULL,
---     TXT_IP            VARCHAR(255) NOT NULL,
---     timestamp         DATETIME NULL,
---     TXT_DETALHES      VARCHAR(2000),
---     PRIMARY KEY (ID_AUDITORIA),
---     KEY               IX_AUDITORIA_USUARIO (TXT_USUARIO),
---     KEY               IX_AUDITORIA_ACAO (TXT_ACAO),
---     KEY               IX_AUDITORIA_ENTIDADE (TXT_NOME_ENTIDADE, TXT_ID_ENTIDADE),
---     KEY               IX_AUDITORIA_TS (timestamp)
+-- CREATE TABLE IF NOT EXISTS AUDITORIA (
+--     ID_AUDITORIA BIGINT AUTO_INCREMENT PRIMARY KEY,
+--     DAT_EVENT_TIME TIMESTAMP NOT NULL,
+--     TXT_USERNAME VARCHAR(100),
+--     TXT_ACTION VARCHAR(150),
+--     TXT_RESOURCE VARCHAR(300),
+--     TXT_METHOD VARCHAR(20),
+--     TXT_IP VARCHAR(64),
+--     TXT_USER_AGENT VARCHAR(512),
+--     TXT_DETAILS CLOB
 -- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+-- -- Índices
+-- CREATE INDEX IF NOT EXISTS idx_audit_event_time ON AUDITORIA (DAT_EVENT_TIME);
+-- CREATE INDEX IF NOT EXISTS idx_audit_username ON AUDITORIA (TXT_USERNAME);
+-- CREATE INDEX IF NOT EXISTS idx_audit_action ON AUDITORIA (TXT_ACTION);
+-- CREATE INDEX IF NOT EXISTS idx_audit_resource ON AUDITORIA (TXT_RESOURCE);
+--
 --
 -- -- ====================================================================
 -- -- ROLE

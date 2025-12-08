@@ -4,7 +4,7 @@ import com.alanpatrik.sghss.api.model.dto.response.PrivilegioResponseDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Builder
@@ -25,8 +25,8 @@ public class Privilegio {
     @Column(name = "TXT_PRIVILEGIO", nullable = false, unique = true, length = 150)
     private String name;
 
-    @OneToMany(mappedBy = "privilegio", fetch = FetchType.LAZY)
-    private Set<RolePrivilegio> rolePrivilegios = new HashSet<>();
+    @OneToMany(mappedBy = "privilegio", cascade =  CascadeType.ALL, orphanRemoval = true)
+    private Set<RolePrivilegio> rolePrivilegios = new LinkedHashSet<>();
 
     public static PrivilegioResponseDTO toResponseDTO(Privilegio privilegio) {
         var privilegioDTO = new PrivilegioResponseDTO();

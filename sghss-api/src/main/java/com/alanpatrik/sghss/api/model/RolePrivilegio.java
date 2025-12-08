@@ -12,16 +12,15 @@ import lombok.*;
 @Table(name = "ROLE_PRIVILEGIO")
 public class RolePrivilegio {
 
-    @EmbeddedId
-    private RolePrivilegioId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("roleId")
     @JoinColumn(name = "ID_ROLE")
     private Role role;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("privilegioId")
     @JoinColumn(name = "ID_PRIVILEGIO")
     private Privilegio privilegio;
 

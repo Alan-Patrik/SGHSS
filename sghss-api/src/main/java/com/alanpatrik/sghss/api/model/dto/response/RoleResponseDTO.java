@@ -1,6 +1,5 @@
 package com.alanpatrik.sghss.api.model.dto.response;
 
-import com.alanpatrik.sghss.api.model.RolePrivilegio;
 import lombok.*;
 
 import java.util.Set;

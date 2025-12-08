@@ -2,9 +2,9 @@ package com.alanpatrik.sghss.api.controller;
 
 import com.alanpatrik.sghss.api.comum.Constantes;
 import com.alanpatrik.sghss.api.model.dto.ErroDTO;
+import com.alanpatrik.sghss.api.model.dto.HistoricoPacienteDTO;
+import com.alanpatrik.sghss.api.model.dto.PacienteDTO;
 import com.alanpatrik.sghss.api.model.dto.request.PacienteRequestDTO;
-import com.alanpatrik.sghss.api.model.dto.response.HistoricoPacienteResponseDTO;
-import com.alanpatrik.sghss.api.model.dto.response.PacienteResponseDTO;
 import com.alanpatrik.sghss.api.service.PacienteService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,26 +25,24 @@ public class PacienteController {
 
     private final PacienteService pacienteService;
 
-    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @GetMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<List<PacienteResponseDTO>> getAll() {
+    public ResponseEntity<List<PacienteDTO>> getAll() {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(pacienteService.findAll());
     }
 
-    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @GetMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<PacienteResponseDTO> getById(
+    public ResponseEntity<PacienteDTO> getById(
             @Parameter(example = "id", description = "Id do paciente cadastrado", required = true) @PathVariable(name = "id") Long id
     ) {
         return ResponseEntity
@@ -53,14 +50,13 @@ public class PacienteController {
                 .body(pacienteService.findById(id));
     }
 
-    @PreAuthorize("hasAuthority('" + Constantes.PRIV_VISUALIZAR_HISTORICO + "')")
     @GetMapping("/historico-paciente/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<HistoricoPacienteResponseDTO> getByHistoricoClinicoPaciente(
+    public ResponseEntity<HistoricoPacienteDTO> getByHistoricoClinicoPaciente(
             @Parameter(example = "id", description = "Id do prontuário do paciente cadastrado", required = true) @PathVariable(name = "id") Long id
     ) {
         return ResponseEntity
@@ -68,7 +64,6 @@ public class PacienteController {
                 .body(pacienteService.findByHistoricoClinico(id));
     }
 
-    @PreAuthorize("hasAuthority('" + Constantes.PRIV_CADASTRAR_PACIENTE + "')")
     @PostMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.CREATE_MESSAGE, useReturnTypeSchema = true),
@@ -76,7 +71,7 @@ public class PacienteController {
             @ApiResponse(responseCode = "409", description = Constantes.CONFLICT_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<PacienteResponseDTO> create(
+    public ResponseEntity<PacienteDTO> create(
             @Parameter(example = "Paciente", description = "Objeto Paciente", required = true, name = "pacienteRequestDTO") @RequestBody PacienteRequestDTO pacienteRequestDTO
     ) {
         return ResponseEntity
@@ -84,7 +79,6 @@ public class PacienteController {
                 .body(pacienteService.save(pacienteRequestDTO));
     }
 
-    @PreAuthorize("hasAuthority('" + Constantes.PRIV_ATUALIZAR_PACIENTE + "')")
     @PutMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -92,7 +86,7 @@ public class PacienteController {
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<PacienteResponseDTO> update(
+    public ResponseEntity<PacienteDTO> update(
             @Parameter(example = "id", description = "Id do paciente cadastrado", required = true) @PathVariable(name = "id") Long id,
             @Parameter(example = "Paciente", description = "Objeto Paciente", required = true, name = "pacienteRequestDTO") @RequestBody PacienteRequestDTO pacienteRequestDTO
     ) {
@@ -101,7 +95,6 @@ public class PacienteController {
                 .body(pacienteService.update(id, pacienteRequestDTO));
     }
 
-    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @DeleteMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -109,12 +102,11 @@ public class PacienteController {
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<String> delete(
             @Parameter(example = "id", description = "Id do paciente cadastrado", required = true) @PathVariable(name = "id") Long id
     ) {
-        pacienteService.delete(id);
         return ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
-                .build();
+                .status(HttpStatus.OK)
+                .body(pacienteService.delete(id));
     }
 }

@@ -27,11 +27,11 @@ public class Role {
     private String authority;
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<RolePrivilegio> rolePrivilegios = new HashSet<>();
+    private Set<RolePrivilegio> rolePrivilegios;
 
     @JsonIgnore
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
-    private Set<UsuarioRole> usuarioRoles = new HashSet<>();
+    private Set<UsuarioRole> usuarioRoles;
 
     public static RoleResponseDTO toResponseDTO(Role role) {
         var roleDTO = new RoleResponseDTO();

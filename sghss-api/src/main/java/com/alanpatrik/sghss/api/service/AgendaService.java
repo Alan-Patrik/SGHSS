@@ -5,11 +5,12 @@ import com.alanpatrik.sghss.api.exception.ConflitoException;
 import com.alanpatrik.sghss.api.exception.InformacaoNaoEncontradaException;
 import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
 import com.alanpatrik.sghss.api.model.Agenda;
+import com.alanpatrik.sghss.api.model.dto.AgendaDTO;
 import com.alanpatrik.sghss.api.model.dto.HorarioDisponivelDTO;
 import com.alanpatrik.sghss.api.model.dto.request.AgendaRequestDTO;
-import com.alanpatrik.sghss.api.model.dto.response.AgendaResponseDTO;
 import com.alanpatrik.sghss.api.model.enums.StatusHorario;
 import com.alanpatrik.sghss.api.repository.AgendaRepository;
+import com.alanpatrik.sghss.api.security.anotation.RequireRoles;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -18,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -27,22 +30,29 @@ public class AgendaService {
     private final AgendaRepository agendaRepository;
     private final ProfissionalSaudeService profissionalSaudeService;
 
-    public List<AgendaResponseDTO> getAll() {
+    @RequireRoles({Constantes.PRIV_GERENCIAR_AGENDAS})
+    @Transactional(readOnly = true)
+    public List<AgendaDTO> getAll() {
         return agendaRepository.findAll().stream().map(Agenda::toResponseDTO).toList();
     }
 
-    public AgendaResponseDTO findById(Long id) {
+    @RequireRoles({Constantes.PRIV_GERENCIAR_AGENDAS})
+    @Transactional(readOnly = true)
+    public AgendaDTO findById(Long id) {
         if (id == null) {
             throw new ParametroInvalidoException("O campo Id da Agenda é obrigatório.");
         }
 
         var agenda = agendaRepository.findById(id).orElseThrow(() ->
-                new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
+                new InformacaoNaoEncontradaException(
+                        Constantes.AGENDA_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id))
+                ));
         return Agenda.toResponseDTO(agenda);
     }
 
+    @RequireRoles({Constantes.PRIV_GERENCIAR_AGENDAS})
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AgendaResponseDTO save(AgendaRequestDTO agendaRequestDTO) {
+    public AgendaDTO save(AgendaRequestDTO agendaRequestDTO) {
         this.validarParametrosObrigatorios(agendaRequestDTO);
 
         var profissionalSaude = profissionalSaudeService.findByCRM(agendaRequestDTO.getProfissionalSaude());
@@ -52,27 +62,30 @@ public class AgendaService {
 
         var agenda = Agenda.builder()
                 .profissionalSaude(profissionalSaude)
-                .horariosDisponiveis(new ArrayList<>())
+                .horariosDisponiveis(new LinkedHashSet<>())
                 .build();
 
         return Agenda.toResponseDTO(agendaRepository.save(agenda));
     }
 
+    @RequireRoles({Constantes.PRIV_GERENCIAR_AGENDAS})
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AgendaResponseDTO addTime(Long id, LocalDateTime dataHoraNovaConsulta) {
+    public AgendaDTO addTime(Long id, LocalDateTime dataHoraNovaConsulta) {
         this.validarParametrosObrigatorios(id, dataHoraNovaConsulta);
         var agendaResponseDTO = this.findById(id);
 
         var horariosDisponiveis = new ArrayList<HorarioDisponivelDTO>();
         for (var horario : agendaResponseDTO.getHorariosDisponiveis()) {
             if (horario.getHorarioDisponivel().equals(dataHoraNovaConsulta)) {
-                throw new ConflitoException("Horário informado já se encontra disponível.");
+                throw new ConflitoException(
+                        Constantes.AGENDA_CONFLICT_BY_HORARIO_MESSAGE
+                                .replace("%s", dataHoraNovaConsulta.toString()
+                                ));
             }
             horariosDisponiveis.add(horario);
         }
 
-        if (agendaResponseDTO.getHorariosDisponiveis() == null ||
-                agendaResponseDTO.getHorariosDisponiveis().isEmpty()) {
+        if (agendaResponseDTO.getHorariosDisponiveis().isEmpty()) {
             var horarioDisponivelDTO = new HorarioDisponivelDTO();
             horarioDisponivelDTO.setStatus(StatusHorario.D);
             horarioDisponivelDTO.setHorarioDisponivel(dataHoraNovaConsulta);
@@ -87,16 +100,17 @@ public class AgendaService {
 
         var listaOrdenada = horariosDisponiveis.stream()
                 .sorted(Comparator.comparing(h -> h.getHorarioDisponivel().toLocalTime()))
-                .toList();
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         agendaResponseDTO.setHorariosDisponiveis(listaOrdenada);
 
         var agenda = agendaRepository.save(Agenda.toEntity(agendaResponseDTO));
         return Agenda.toResponseDTO(agenda);
     }
 
+    @RequireRoles({Constantes.PRIV_GERENCIAR_AGENDAS})
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AgendaResponseDTO updateTime(Long id, LocalDateTime dataHoraConsultaAntiga, LocalDateTime dataHoraNovaConsulta) {
-        this.validarParametrosObrigatorios(id, dataHoraNovaConsulta);
+    public AgendaDTO updateTime(Long id, LocalDateTime dataHoraConsultaAntiga, LocalDateTime dataHoraNovaConsulta) {
+        this.validarParametrosObrigatorios(id, dataHoraConsultaAntiga, dataHoraNovaConsulta);
         var agendaResponseDTO = this.findById(id);
 
         var horariosDisponiveis = new ArrayList<HorarioDisponivelDTO>();
@@ -105,7 +119,10 @@ public class AgendaService {
         for (var horarioDTO : agendaResponseDTO.getHorariosDisponiveis()) {
             if (horarioDTO.getHorarioDisponivel().equals(dataHoraNovaConsulta)) {
                 if (horarioDTO.getStatus() == StatusHorario.N) {
-                    throw new InformacaoNaoEncontradaException("Horário informado não disponível.");
+                    throw new InformacaoNaoEncontradaException(
+                            Constantes.AGENDA_NOT_FOUND_BY_HORARIO_MESSAGE
+                                    .replace("%s", dataHoraNovaConsulta.toString()
+                                    ));
                 }
 
                 horarioDTO.setStatus(StatusHorario.N);
@@ -129,22 +146,27 @@ public class AgendaService {
         }
 
         if (!containsHorarioAntigo) {
-            throw new InformacaoNaoEncontradaException("Horário não encontrado.");
+            throw new InformacaoNaoEncontradaException(
+                    Constantes.AGENDA_NOT_FOUND_BY_HORARIO_MESSAGE
+                            .replace("%s", dataHoraConsultaAntiga.toString()));
         }
 
         if (!containsHorarioNovo) {
-            throw new InformacaoNaoEncontradaException("Horário da nova consulta não encontrada ou indisponível.");
+            throw new InformacaoNaoEncontradaException(
+                    Constantes.AGENDA_NOT_FOUND_BY_HORARIO_DISPONIVEL_MESSAGE
+                            .replace("%s", dataHoraNovaConsulta.toString()));
         }
 
         var listaOrdenada = horariosDisponiveis.stream()
                 .sorted(Comparator.comparing(h -> h.getHorarioDisponivel().toLocalTime()))
-                .toList();
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         agendaResponseDTO.setHorariosDisponiveis(listaOrdenada);
 
         var agenda = agendaRepository.save(Agenda.toEntity(agendaResponseDTO));
         return Agenda.toResponseDTO(agenda);
     }
 
+    @RequireRoles({Constantes.PRIV_GERENCIAR_AGENDAS})
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void schedule(Long id, LocalDateTime dataHoraConsulta) {
         this.validarParametrosObrigatorios(id, dataHoraConsulta);
@@ -152,7 +174,7 @@ public class AgendaService {
 
         var containsHorario = false;
         var horarioDTO = new HorarioDisponivelDTO();
-        var horariosDisponiveis = new ArrayList<HorarioDisponivelDTO>();
+        var horariosDisponiveis = new LinkedHashSet<HorarioDisponivelDTO>();
         if (agenda.getHorariosDisponiveis().isEmpty()) {
             throw new InformacaoNaoEncontradaException("A agenda do profissional de saúde não possui horários disponíveis.");
         }
@@ -176,18 +198,20 @@ public class AgendaService {
 
         var listaOrdenada = horariosDisponiveis.stream()
                 .sorted(Comparator.comparing(h -> h.getHorarioDisponivel().toLocalTime()))
-                .toList();
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         agenda.setHorariosDisponiveis(listaOrdenada);
 
         agendaRepository.save(agenda);
     }
 
+    @RequireRoles({Constantes.PRIV_GERENCIAR_AGENDAS})
+    @Transactional
     public void cancelTime(Long id, LocalDateTime dataHoraConsulta) {
         this.validarParametrosObrigatorios(id, dataHoraConsulta);
         var agendaResponseDTO = this.findById(id);
 
         var containsHorario = false;
-        var horariosDisponiveis = new ArrayList<HorarioDisponivelDTO>();
+        var horariosDisponiveis = new LinkedHashSet<HorarioDisponivelDTO>();
         for (var horarioDTO : agendaResponseDTO.getHorariosDisponiveis()) {
             if (horarioDTO.getHorarioDisponivel().equals(dataHoraConsulta) &&
                     horarioDTO.getStatus() == StatusHorario.N) {
@@ -202,19 +226,22 @@ public class AgendaService {
         }
 
         if (!containsHorario) {
-            throw new InformacaoNaoEncontradaException("Horário informado não encontrado ou agendado.");
+            throw new InformacaoNaoEncontradaException(
+                    Constantes.AGENDA_NOT_FOUND_BY_HORARIO_MESSAGE.replace("%s", dataHoraConsulta.toString()));
         }
 
         agendaResponseDTO.setHorariosDisponiveis(horariosDisponiveis);
         agendaRepository.save(Agenda.toEntity(agendaResponseDTO));
     }
 
+    @RequireRoles({Constantes.PRIV_GERENCIAR_AGENDAS})
+    @Transactional
     public void deleteTime(Long id, LocalDateTime dataHoraConsulta) {
         this.validarParametrosObrigatorios(id, dataHoraConsulta);
         var agendaResponseDTO = this.findById(id);
 
         var containsHorario = false;
-        var horariosDisponiveis = new ArrayList<HorarioDisponivelDTO>();
+        var horariosDisponiveis = new LinkedHashSet<HorarioDisponivelDTO>();
         for (var horarioDTO : agendaResponseDTO.getHorariosDisponiveis()) {
             if (horarioDTO.getHorarioDisponivel().equals(dataHoraConsulta) &&
                     horarioDTO.getStatus() == StatusHorario.D) {
@@ -226,11 +253,31 @@ public class AgendaService {
         }
 
         if (!containsHorario) {
-            throw new InformacaoNaoEncontradaException("Horário informado não encontrado ou agendado.");
+            throw new InformacaoNaoEncontradaException(
+                    Constantes.AGENDA_NOT_FOUND_BY_HORARIO_DISPONIVEL_MESSAGE
+                            .replace("%s", dataHoraConsulta.toString()));
         }
 
         agendaResponseDTO.setHorariosDisponiveis(horariosDisponiveis);
         agendaRepository.save(Agenda.toEntity(agendaResponseDTO));
+    }
+
+    @RequireRoles({Constantes.PRIV_GERENCIAR_AGENDAS})
+    @Transactional
+    public String delete(Long id) {
+        var agenda = agendaRepository.findById(id).orElseThrow(() ->
+                new InformacaoNaoEncontradaException(
+                        Constantes.AGENDA_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id))
+                ));
+
+        var profissionalSaude = agenda.getProfissionalSaude();
+        if (profissionalSaude != null) {
+            profissionalSaude.setAgenda(null);
+            agenda.setProfissionalSaude(null);
+        }
+
+        agendaRepository.save(agenda);
+        return "Agenda deletada com sucesso.";
     }
 
     private void validarParametrosObrigatorios(Long id, LocalDateTime dataHoraConsulta) {
@@ -240,6 +287,20 @@ public class AgendaService {
 
         if (dataHoraConsulta == null) {
             throw new ParametroInvalidoException("O campo Data e Hora da consulta é obrigatório.");
+        }
+    }
+
+    private void validarParametrosObrigatorios(Long id, LocalDateTime dataHoraConsultaAntiga, LocalDateTime dataHoraConsultaNova) {
+        if (id == null) {
+            throw new ParametroInvalidoException("O campo Id da Agenda é obrigatório.");
+        }
+
+        if (dataHoraConsultaAntiga == null) {
+            throw new ParametroInvalidoException("O campo Data e Hora da consulta antiga é obrigatório.");
+        }
+
+        if (dataHoraConsultaNova == null) {
+            throw new ParametroInvalidoException("O campo Data e Hora da consulta nova é obrigatório.");
         }
     }
 

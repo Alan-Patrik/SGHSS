@@ -19,5 +19,6 @@ public class ConsultaRequestDTO {
     private AreaAtuacao areaAtuacao;
     private TipoConsulta tipoConsulta;
     private String nomePaciente;
+    private String nomeUnidadeSaude;
     private String CRM;
 }

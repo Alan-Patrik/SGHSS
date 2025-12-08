@@ -7,14 +7,18 @@ import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
 import com.alanpatrik.sghss.api.model.Endereco;
 import com.alanpatrik.sghss.api.model.ProfissionalSaude;
 import com.alanpatrik.sghss.api.model.UnidadeSaude;
+import com.alanpatrik.sghss.api.model.dto.UnidadeSaudeDTO;
 import com.alanpatrik.sghss.api.model.dto.request.UnidadeSaudeAdicionarProfissionalRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.request.UnidadeSaudeRequestDTO;
-import com.alanpatrik.sghss.api.model.dto.response.UnidadeSaudeResponseDTO;
 import com.alanpatrik.sghss.api.repository.UnidadeSaudeRepository;
+import com.alanpatrik.sghss.api.security.anotation.RequireRoles;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -24,22 +28,34 @@ public class UnidadeSaudeService {
     private final UnidadeSaudeRepository unidadeSaudeRepository;
     private final ProfissionalSaudeService profissionalSaudeService;
 
-    public List<UnidadeSaudeResponseDTO> getAll() {
-        return unidadeSaudeRepository.findAll().stream().map(UnidadeSaude::toResponseDTO).toList();
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
+    public List<UnidadeSaudeDTO> getAll() {
+        return unidadeSaudeRepository.findAll().stream().map(UnidadeSaude::toDTO).toList();
     }
 
-    public UnidadeSaudeResponseDTO findById(Long id) {
-        var unidadeSaudeResponseDTO = unidadeSaudeRepository.findById(id).orElseThrow(() ->
-                new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
-        return UnidadeSaude.toResponseDTO(unidadeSaudeResponseDTO);
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
+    public UnidadeSaudeDTO findById(Long id) {
+        var unidadeSaudeDTO = unidadeSaudeRepository.findById(id).orElseThrow(() ->
+                new InformacaoNaoEncontradaException(
+                        Constantes.UNIDADE_SAUDE_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id)))
+        );
+        return UnidadeSaude.toDTO(unidadeSaudeDTO);
     }
 
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
     public UnidadeSaude findByName(String nome) {
         return unidadeSaudeRepository.findByNome(nome).orElseThrow(() ->
-                new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
+                new InformacaoNaoEncontradaException(
+                        Constantes.UNIDADE_SAUDE_NOT_FOUND_BY_NAME_MESSAGE.replace("%s", nome)
+                ));
     }
 
-    public UnidadeSaudeResponseDTO save(UnidadeSaudeRequestDTO unidadeSaudeRequestDTO) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public UnidadeSaudeDTO save(UnidadeSaudeRequestDTO unidadeSaudeRequestDTO) {
         this.validarParametrosObrigatorios(unidadeSaudeRequestDTO);
         if (unidadeSaudeRepository.existsUnidadeSaudeByNome(unidadeSaudeRequestDTO.getNome())) {
             throw new ConflitoException(Constantes.CONFLICT_MESSAGE);
@@ -59,24 +75,27 @@ public class UnidadeSaudeService {
         var unidadeSaude = UnidadeSaude.builder()
                 .nome(unidadeSaudeRequestDTO.getNome())
                 .endereco(endereco)
-                .leitos(new ArrayList<>())
-                .profissionais(new ArrayList<>())
+                .leitos(new LinkedHashSet<>())
+                .profissionais(new LinkedHashSet<>())
+                .pacientes(new LinkedHashSet<>())
                 .build();
 
         unidadeSaude = unidadeSaudeRepository.save(unidadeSaude);
-        return UnidadeSaude.toResponseDTO(unidadeSaude);
+        return UnidadeSaude.toDTO(unidadeSaude);
     }
 
-    public UnidadeSaudeResponseDTO addProfissionalSaude(UnidadeSaudeAdicionarProfissionalRequestDTO unidadeSaudeAdicionarProfissionalRequestDTO) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public UnidadeSaudeDTO addProfissionalSaude(UnidadeSaudeAdicionarProfissionalRequestDTO unidadeSaudeAdicionarProfissionalRequestDTO) {
         this.validarParametrosObrigatorios(unidadeSaudeAdicionarProfissionalRequestDTO);
 
         var unidadeSaude = this.findByName(unidadeSaudeAdicionarProfissionalRequestDTO.getNomeUnidadeSaude());
-        var profissionalSaude = profissionalSaudeService.findByCRM(unidadeSaudeAdicionarProfissionalRequestDTO.getCRM());
+        var profissionalSaude = profissionalSaudeService.findByCRM(unidadeSaudeAdicionarProfissionalRequestDTO.getCrm());
 
-        var profissionaisSaude = new ArrayList<ProfissionalSaude>();
+        var profissionaisSaude = new HashSet<ProfissionalSaude>();
         if (unidadeSaude.getProfissionais() != null && !unidadeSaude.getProfissionais().isEmpty()) {
             for (var profissionalSaudeDTO : unidadeSaude.getProfissionais()) {
-                if (profissionalSaudeDTO.getCRM().equals(unidadeSaudeAdicionarProfissionalRequestDTO.getCRM())) {
+                if (profissionalSaudeDTO.getCRM().equals(unidadeSaudeAdicionarProfissionalRequestDTO.getCrm())) {
                     throw new ConflitoException(Constantes.CONFLICT_MESSAGE);
                 }
                 profissionaisSaude.add(profissionalSaudeDTO);
@@ -88,10 +107,12 @@ public class UnidadeSaudeService {
         unidadeSaude = unidadeSaudeRepository.save(unidadeSaude);
         profissionalSaudeService.addUnidadeSaude(profissionalSaude.getCRM(), unidadeSaude);
 
-        return UnidadeSaude.toResponseDTO(unidadeSaude);
+        return UnidadeSaude.toDTO(unidadeSaude);
     }
 
-    public UnidadeSaudeResponseDTO deleteProfissionalSaude(String crm, String nomeUnidadeSaude) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public UnidadeSaudeDTO deleteProfissionalSaude(String crm, String nomeUnidadeSaude) {
         if (nomeUnidadeSaude == null || nomeUnidadeSaude.isEmpty() || nomeUnidadeSaude.isBlank()) {
             throw new ParametroInvalidoException("O campo Nome da Unidade de Saúde é obrigatório.");
         }
@@ -99,7 +120,7 @@ public class UnidadeSaudeService {
         var unidadeSaude = this.findByName(nomeUnidadeSaude);
         var profissionalSaude = profissionalSaudeService.findByCRM(crm);
 
-        var profissionaisSaude = new ArrayList<ProfissionalSaude>();
+        var profissionaisSaude = new HashSet<ProfissionalSaude>();
         var containsProfissionalSaude = false;
         if (unidadeSaude.getProfissionais() != null) {
             for (var profissionalSaudeDTO : unidadeSaude.getProfissionais()) {
@@ -120,15 +141,17 @@ public class UnidadeSaudeService {
 
         unidadeSaude.setProfissionais(profissionaisSaude);
         unidadeSaude = unidadeSaudeRepository.save(unidadeSaude);
-        profissionalSaudeService.removeUnidadeSaude(profissionalSaude.getCRM());
+        profissionalSaudeService.removeUnidadeSaude(profissionalSaude.getCRM(), unidadeSaude);
         unidadeSaude.getProfissionais().remove(profissionalSaude);
 
-        return UnidadeSaude.toResponseDTO(unidadeSaude);
+        return UnidadeSaude.toDTO(unidadeSaude);
     }
 
-    public UnidadeSaudeResponseDTO update(Long id, UnidadeSaudeRequestDTO unidadeSaudeRequestDTO) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public UnidadeSaudeDTO update(Long id, UnidadeSaudeRequestDTO unidadeSaudeRequestDTO) {
         this.validarParametrosObrigatorios(unidadeSaudeRequestDTO);
-        var unidadeSaude = UnidadeSaude.toEntity(this.findById(id));
+        var unidadeSaude = UnidadeSaude.toEntityResponse(this.findById(id));
 
         if (unidadeSaudeRepository.existsUnidadeSaudeByNome(unidadeSaudeRequestDTO.getNome())) {
             throw new ConflitoException(Constantes.CONFLICT_MESSAGE);
@@ -138,12 +161,15 @@ public class UnidadeSaudeService {
         unidadeSaude.setEndereco(unidadeSaudeRequestDTO.getEndereco());
         unidadeSaude = unidadeSaudeRepository.save(unidadeSaude);
 
-        return UnidadeSaude.toResponseDTO(unidadeSaude);
+        return UnidadeSaude.toDTO(unidadeSaude);
     }
 
-    public void delete(Long id) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public String delete(Long id) {
         var unidadeSaude = this.findById(id);
         unidadeSaudeRepository.deleteById(unidadeSaude.getId());
+        return "Unidade de saúde deletada com sucesso.";
     }
 
     private void validarParametrosObrigatorios(UnidadeSaudeRequestDTO unidadeSaudeRequestDTO) {
@@ -185,11 +211,10 @@ public class UnidadeSaudeService {
                 unidadeSaudeAdicionarProfissionalRequestDTO.getNomeUnidadeSaude().isBlank()) {
             throw new ParametroInvalidoException("O campo Nome da Unidade de Saúde é obrigatório.");
         }
-
-        if (unidadeSaudeAdicionarProfissionalRequestDTO.getCRM() == null ||
-                unidadeSaudeAdicionarProfissionalRequestDTO.getCRM().isEmpty() ||
-                unidadeSaudeAdicionarProfissionalRequestDTO.getCRM().isBlank()) {
-            throw new ParametroInvalidoException("O campo CRM do Profissional Saúde é obrigatório.");
+        if (unidadeSaudeAdicionarProfissionalRequestDTO.getCrm() == null ||
+                unidadeSaudeAdicionarProfissionalRequestDTO.getCrm().isEmpty() ||
+                unidadeSaudeAdicionarProfissionalRequestDTO.getCrm().isBlank()) {
+            throw new ParametroInvalidoException("O campo CRM do Profissional de Saúde é obrigatório.");
         }
     }
 }

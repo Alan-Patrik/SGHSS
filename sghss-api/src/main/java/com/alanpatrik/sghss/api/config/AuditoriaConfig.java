@@ -1,26 +1,20 @@
-
 package com.alanpatrik.sghss.api.config;
 
+import com.alanpatrik.sghss.api.auditoria.AuditoriaLoggingFilter;
+import com.alanpatrik.sghss.api.service.AuditoriaService;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.domain.AuditorAware;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Optional;
 
 @Configuration
-@EnableJpaAuditing
 public class AuditoriaConfig {
 
     @Bean
-    public AuditorAware<String> auditorAware() {
-        return () -> {
-            var authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null || !authentication.isAuthenticated()) {
-                return Optional.of("system");
-            }
-            return Optional.ofNullable(authentication.getName());
-        };
+    public FilterRegistrationBean<AuditoriaLoggingFilter> auditFilterRegistration(AuditoriaService auditoriaService) {
+        FilterRegistrationBean<AuditoriaLoggingFilter> reg = new FilterRegistrationBean<>();
+        reg.setFilter(new AuditoriaLoggingFilter(auditoriaService));
+        reg.addUrlPatterns("/*");           // intercepta todas as rotas
+        reg.setOrder(100);                  // ordem de execução
+        return reg;
     }
 }

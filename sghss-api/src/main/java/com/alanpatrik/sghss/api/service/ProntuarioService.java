@@ -8,11 +8,15 @@ import com.alanpatrik.sghss.api.model.Prontuario;
 import com.alanpatrik.sghss.api.model.dto.request.ProntuarioRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.response.ProntuarioResponseDTO;
 import com.alanpatrik.sghss.api.repository.ProntuarioRepository;
+import com.alanpatrik.sghss.api.security.anotation.RequireRoles;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 
 @Service
 @RequiredArgsConstructor
@@ -21,12 +25,19 @@ public class ProntuarioService {
     private final ProntuarioRepository prontuarioRepository;
     private final PacienteService pacienteService;
 
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
     public ProntuarioResponseDTO findById(Long id) {
         var prontuario = prontuarioRepository.findById(id).orElseThrow(() ->
-                new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
+                new InformacaoNaoEncontradaException(
+                        Constantes.PRONTUARIO_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id))
+                ));
+
         return Prontuario.toResponseDTO(prontuario);
     }
 
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ProntuarioResponseDTO save(ProntuarioRequestDTO prontuarioRequestDTO) {
         this.validarParametrosObrigatorios(prontuarioRequestDTO);
 
@@ -39,7 +50,7 @@ public class ProntuarioService {
                 .observacao(prontuarioRequestDTO.getObservacao())
                 .dataCriacao(LocalDateTime.now())
                 .dataModificacao(LocalDateTime.now())
-                .prescricoes(new ArrayList<>())
+                .prescricoes(new LinkedHashSet<>())
                 .paciente(paciente)
                 .build();
 
@@ -48,6 +59,8 @@ public class ProntuarioService {
         return Prontuario.toResponseDTO(prontuario);
     }
 
+    @RequireRoles({Constantes.PRIV_ATUALIZAR_PRONTUARIO})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ProntuarioResponseDTO update(Long id, ProntuarioRequestDTO prontuarioRequestDTO) {
         this.validarParametrosObrigatorios(prontuarioRequestDTO);
 
@@ -63,6 +76,31 @@ public class ProntuarioService {
 
         prontuario = prontuarioRepository.save(prontuario);
         return Prontuario.toResponseDTO(prontuario);
+    }
+
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public String delete(Long id) {
+        var prontuario = prontuarioRepository.findById(id).orElseThrow(() ->
+                new InformacaoNaoEncontradaException(
+                        Constantes.PRONTUARIO_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id))
+                ));
+
+        if (prontuario.getPrescricoes() != null && !prontuario.getPrescricoes().isEmpty()) {
+            for (var prescricao : new ArrayList<>(prontuario.getPrescricoes())) {
+                prescricao.setProntuario(null);
+            }
+            prontuario.getPrescricoes().clear();
+        }
+
+        var paciente = prontuario.getPaciente();
+        if (paciente != null) {
+            prontuario.setPaciente(null);
+            paciente.setProntuario(null);
+        }
+
+        prontuarioRepository.deleteById(prontuario.getId());
+        return "Prontuario deletado com sucesso!";
     }
 
     private void validarParametrosObrigatorios(ProntuarioRequestDTO rontuarioRequestDTO) {

@@ -1,12 +1,12 @@
 package com.alanpatrik.sghss.api.model;
 
+import com.alanpatrik.sghss.api.model.dto.AgendaDTO;
 import com.alanpatrik.sghss.api.model.dto.HorarioDisponivelDTO;
-import com.alanpatrik.sghss.api.model.dto.response.AgendaResponseDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Builder
 @NoArgsConstructor
@@ -24,34 +24,27 @@ public class Agenda {
     @ElementCollection
     @CollectionTable(name = "HORARIOS_DISPONIVEIS", joinColumns = @JoinColumn(name = "AGENDA_ID"))
     @Column(name = "HORARIO")
-    private List<HorarioDisponivelDTO> horariosDisponiveis;
+    private Set<HorarioDisponivelDTO> horariosDisponiveis = new LinkedHashSet<>();
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     private ProfissionalSaude profissionalSaude;
 
 
-    public static AgendaResponseDTO toResponseDTO(Agenda agenda) {
-        var agendaResponseDTO = new AgendaResponseDTO();
+    public static AgendaDTO toResponseDTO(Agenda agenda) {
+        var agendaResponseDTO = new AgendaDTO();
         agendaResponseDTO.setId(agenda.getId());
-        agendaResponseDTO.setProfissionalSaude(agenda.getProfissionalSaude());
+        agendaResponseDTO.setProfissionalSaude(ProfissionalSaude.toResponseDTO(agenda.getProfissionalSaude()));
         agendaResponseDTO.setHorariosDisponiveis(agenda.getHorariosDisponiveis());
+
         return agendaResponseDTO;
     }
 
-    public static Agenda toEntity(AgendaResponseDTO agendaResponseDTO) {
+    public static Agenda toEntity(AgendaDTO agendaResponseDTO) {
         var agenda = new Agenda();
         agenda.setId(agendaResponseDTO.getId());
-        agenda.setProfissionalSaude(agendaResponseDTO.getProfissionalSaude());
+        agenda.setProfissionalSaude(ProfissionalSaude.toEntity(agendaResponseDTO.getProfissionalSaude()));
         agenda.setHorariosDisponiveis(agendaResponseDTO.getHorariosDisponiveis());
-        return agenda;
-    }
 
-    public static List<AgendaResponseDTO> toResponseDTOList(List<Agenda> agendaList) {
-        var agendas = new ArrayList<AgendaResponseDTO>();
-        for (Agenda agenda : agendaList) {
-            var AgendaResponseDTO = toResponseDTO(agenda);
-            agendas.add(AgendaResponseDTO);
-        }
-        return agendas;
+        return agenda;
     }
 }

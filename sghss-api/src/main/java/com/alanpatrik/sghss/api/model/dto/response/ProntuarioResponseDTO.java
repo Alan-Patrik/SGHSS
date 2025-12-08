@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,5 +19,5 @@ public class ProntuarioResponseDTO {
     private String nomePaciente;
     private LocalDateTime dataCriacao;
     private LocalDateTime dataModificacao;
-    private List<PrescricaoResponseDTO> prescricoes;
+    private Set<PrescricaoResponseDTO> prescricoes;
 }

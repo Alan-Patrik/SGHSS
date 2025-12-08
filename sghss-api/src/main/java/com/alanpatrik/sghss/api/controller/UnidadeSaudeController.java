@@ -2,9 +2,9 @@ package com.alanpatrik.sghss.api.controller;
 
 import com.alanpatrik.sghss.api.comum.Constantes;
 import com.alanpatrik.sghss.api.model.dto.ErroDTO;
+import com.alanpatrik.sghss.api.model.dto.UnidadeSaudeDTO;
 import com.alanpatrik.sghss.api.model.dto.request.UnidadeSaudeAdicionarProfissionalRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.request.UnidadeSaudeRequestDTO;
-import com.alanpatrik.sghss.api.model.dto.response.UnidadeSaudeResponseDTO;
 import com.alanpatrik.sghss.api.service.UnidadeSaudeService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,38 +14,35 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/unidade-saude")
+@RequestMapping("/api/v1/unidades-saude")
 public class UnidadeSaudeController {
 
     private final UnidadeSaudeService unidadeSaudeService;
 
-    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @GetMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<List<UnidadeSaudeResponseDTO>> getAll() {
+    public ResponseEntity<List<UnidadeSaudeDTO>> getAll() {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(unidadeSaudeService.getAll());
     }
 
-    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @GetMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<UnidadeSaudeResponseDTO> getById(
+    public ResponseEntity<UnidadeSaudeDTO> getById(
             @Parameter(example = "id", description = "Id da Unidade de Saúde cadastrada", required = true) @PathVariable(name = "id") Long id
     ) {
         return ResponseEntity
@@ -53,7 +50,6 @@ public class UnidadeSaudeController {
                 .body(unidadeSaudeService.findById(id));
     }
 
-    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @PostMapping
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -62,7 +58,7 @@ public class UnidadeSaudeController {
             @ApiResponse(responseCode = "409", description = Constantes.CONFLICT_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<UnidadeSaudeResponseDTO> save(
+    public ResponseEntity<UnidadeSaudeDTO> save(
             @Parameter(example = "unidadeSaudeRequestDTO", description = "Objeto Unidade de Saúde", required = true, name = "unidadeSaudeRequestDTO") @RequestBody UnidadeSaudeRequestDTO unidadeSaudeRequestDTO
     ) {
         return ResponseEntity
@@ -70,7 +66,6 @@ public class UnidadeSaudeController {
                 .body(unidadeSaudeService.save(unidadeSaudeRequestDTO));
     }
 
-    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @PostMapping("/adicionar-profissional")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -79,7 +74,7 @@ public class UnidadeSaudeController {
             @ApiResponse(responseCode = "409", description = Constantes.CONFLICT_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<UnidadeSaudeResponseDTO> addProfissionalSaude(
+    public ResponseEntity<UnidadeSaudeDTO> addProfissionalSaude(
             @Parameter(example = "unidadeSaudeAdicionarProfissionalRequestDTO", description = "Objeto Unidade de Saúde", required = true, name = "unidadeSaudeAdicionarProfissionalRequestDTO") @RequestBody UnidadeSaudeAdicionarProfissionalRequestDTO unidadeSaudeAdicionarProfissionalRequestDTO
     ) {
         return ResponseEntity
@@ -87,7 +82,6 @@ public class UnidadeSaudeController {
                 .body(unidadeSaudeService.addProfissionalSaude(unidadeSaudeAdicionarProfissionalRequestDTO));
     }
 
-    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @PutMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -96,7 +90,7 @@ public class UnidadeSaudeController {
             @ApiResponse(responseCode = "409", description = Constantes.CONFLICT_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<UnidadeSaudeResponseDTO> update(
+    public ResponseEntity<UnidadeSaudeDTO> update(
             @Parameter(example = "id", description = "Id da Unidade de Saúde cadastrada", required = true) @PathVariable(name = "id") Long id,
             @Parameter(example = "unidadeSaudeRequestDTO", description = "Objeto Unidade de Saúde", required = true, name = "unidadeSaudeRequestDTO") @RequestBody UnidadeSaudeRequestDTO unidadeSaudeRequestDTO
     ) {
@@ -105,23 +99,20 @@ public class UnidadeSaudeController {
                 .body(unidadeSaudeService.update(id, unidadeSaudeRequestDTO));
     }
 
-    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @DeleteMapping("/{id}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = Constantes.NO_CONTENT_MESSAGE, useReturnTypeSchema = true),
             @ApiResponse(responseCode = "404", description = Constantes.NOT_FOUND_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<String> delete(
             @Parameter(example = "id", description = "Id da Unidade de Saúde cadastrada", required = true) @PathVariable(name = "id") Long id
     ) {
-        unidadeSaudeService.delete(id);
         return ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
-                .build();
+                .status(HttpStatus.OK)
+                .body(unidadeSaudeService.delete(id));
     }
 
-    @PreAuthorize("hasAuthority('" + Constantes.LOGON_ROLE_ADMIN_SISTEMA + "')")
     @DeleteMapping("/remover-profissional/{crm}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = Constantes.OK_MESSAGE, useReturnTypeSchema = true),
@@ -130,7 +121,7 @@ public class UnidadeSaudeController {
             @ApiResponse(responseCode = "409", description = Constantes.CONFLICT_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class))),
             @ApiResponse(responseCode = "500", description = Constantes.ERRO_MESSAGE, content = @Content(schema = @Schema(implementation = ErroDTO.class)))
     })
-    public ResponseEntity<UnidadeSaudeResponseDTO> deleteProfissionalSaude(
+    public ResponseEntity<UnidadeSaudeDTO> deleteProfissionalSaude(
             @Parameter(example = "CRM", description = "CRM do Profissional de Saúde", required = true, name = "crm") @PathVariable String crm,
             @Parameter(example = "nomeUnidadeSaude", description = "Nome da unidade de Saúde", required = true, name = "nomeUnidadeSaude") @RequestParam String nomeUnidadeSaude
     ) {

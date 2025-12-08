@@ -9,8 +9,13 @@ import com.alanpatrik.sghss.api.model.Prontuario;
 import com.alanpatrik.sghss.api.model.dto.request.PrescricaoRequestDTO;
 import com.alanpatrik.sghss.api.model.dto.response.PrescricaoResponseDTO;
 import com.alanpatrik.sghss.api.repository.PrescricaoRepository;
+import com.alanpatrik.sghss.api.security.anotation.RequireRoles;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -19,16 +24,25 @@ public class PrescricaoService {
     private final PrescricaoRepository prescricaoRepository;
     private final ProntuarioService prontuarioService;
 
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
+    public List<PrescricaoResponseDTO> findAll() {
+        return prescricaoRepository.findAll().stream().map(Prescricao::toResponseDTO).toList();
+    }
+
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
     public PrescricaoResponseDTO findById(Long id) {
         var prescricao = prescricaoRepository.findById(id).orElseThrow(() ->
-                new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
+                new InformacaoNaoEncontradaException(
+                        Constantes.PRESCRICAO_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id))
+                ));
+
         return Prescricao.toResponseDTO(prescricao);
     }
 
-    private boolean verifyIfExistsByMedicamento(String medicamento) {
-        return prescricaoRepository.existsPrescricaoByMedicamento((medicamento));
-    }
-
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public PrescricaoResponseDTO save(PrescricaoRequestDTO prescricaoRequestDTO) {
         this.validarParametrosObrigatorios(prescricaoRequestDTO);
 
@@ -49,6 +63,8 @@ public class PrescricaoService {
         return Prescricao.toResponseDTO(prescricao);
     }
 
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public PrescricaoResponseDTO update(Long id, PrescricaoRequestDTO prescricaoRequestDTO) {
         this.validarParametrosObrigatorios(prescricaoRequestDTO);
 
@@ -60,6 +76,28 @@ public class PrescricaoService {
 
         prescricao = prescricaoRepository.save(prescricao);
         return Prescricao.toResponseDTO(prescricao);
+    }
+
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public String delete(Long id) {
+        var prescricao = prescricaoRepository.findById(id).orElseThrow(() ->
+                new InformacaoNaoEncontradaException(
+                        Constantes.PRESCRICAO_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id)))
+        );
+
+        var prontuario = prescricao.getProntuario();
+        if (prontuario != null) {
+            prontuario.getPrescricoes().removeIf(p -> p.getId().equals(id));
+            prescricao.setProntuario(null);
+        }
+
+        prescricaoRepository.delete(prescricao);
+        return "Prescrição deletada com sucesso.";
+    }
+
+    private boolean verifyIfExistsByMedicamento(String medicamento) {
+        return prescricaoRepository.existsPrescricaoByMedicamento((medicamento));
     }
 
     private void validarParametrosObrigatorios(PrescricaoRequestDTO prescricaoRequestDTO) {

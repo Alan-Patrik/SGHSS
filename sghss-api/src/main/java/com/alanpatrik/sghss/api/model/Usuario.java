@@ -1,13 +1,13 @@
 package com.alanpatrik.sghss.api.model;
 
 import com.alanpatrik.sghss.api.model.dto.response.UsuarioResponseDTO;
+import com.alanpatrik.sghss.api.security.crypto.Crypto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
 
 @Builder
@@ -51,19 +51,8 @@ public class Usuario {
         var usuarioResponseDTO = new UsuarioResponseDTO();
         usuarioResponseDTO.setId(usuario.getId());
         usuarioResponseDTO.setUsername(usuario.getUsername());
-        usuarioResponseDTO.setPassword(usuario.getPassword());
-        usuarioResponseDTO.setEmail(usuario.getEmail());
-        usuarioResponseDTO.setUsuarioRoles(usuario.getUsuarioRoles());
+        usuarioResponseDTO.setEmail(Crypto.mascararEmail(usuario.getEmail()));
         return usuarioResponseDTO;
-    }
-
-    @Transient
-    public Set<Role> getRoles() {
-        Set<Role> set = new HashSet<>();
-        for (var usuarioRole : usuarioRoles) {
-            set.add(usuarioRole.getRole());
-        }
-        return set;
     }
 }
 

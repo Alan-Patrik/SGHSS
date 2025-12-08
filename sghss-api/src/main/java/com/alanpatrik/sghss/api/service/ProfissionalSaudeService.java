@@ -4,49 +4,63 @@ import com.alanpatrik.sghss.api.comum.Constantes;
 import com.alanpatrik.sghss.api.exception.ConflitoException;
 import com.alanpatrik.sghss.api.exception.InformacaoNaoEncontradaException;
 import com.alanpatrik.sghss.api.exception.ParametroInvalidoException;
+import com.alanpatrik.sghss.api.model.Agenda;
 import com.alanpatrik.sghss.api.model.Endereco;
 import com.alanpatrik.sghss.api.model.ProfissionalSaude;
 import com.alanpatrik.sghss.api.model.UnidadeSaude;
+import com.alanpatrik.sghss.api.model.dto.ProfissionalSaudeDTO;
 import com.alanpatrik.sghss.api.model.dto.request.ProfissionalSaudeRequestDTO;
-import com.alanpatrik.sghss.api.model.dto.response.ProfissionalSaudeResponseDTO;
+import com.alanpatrik.sghss.api.repository.AgendaRepository;
 import com.alanpatrik.sghss.api.repository.ProfissionalSaudeRepository;
+import com.alanpatrik.sghss.api.repository.UnidadeSaudeRepository;
+import com.alanpatrik.sghss.api.security.anotation.RequireRoles;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProfissionalSaudeService {
 
     private final ProfissionalSaudeRepository profissionalSaudeRepository;
+    private final UnidadeSaudeRepository unidadeSaudeRepository;
+    private final AgendaRepository agendaRepository;
 
-    public List<ProfissionalSaudeResponseDTO> findAll() {
-        return profissionalSaudeRepository.findAll().stream().map(ProfissionalSaude::toResponseDTO).toList();
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
+    public List<ProfissionalSaudeDTO> findAll() {
+        return profissionalSaudeRepository.findAll().stream().map(ProfissionalSaude::toDTO).toList();
     }
 
-    public ProfissionalSaudeResponseDTO findById(Long id) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
+    public ProfissionalSaudeDTO findById(Long id) {
         var profissionalSaude = profissionalSaudeRepository.findById(id).orElseThrow(() ->
-                new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
-        return ProfissionalSaude.toResponseDTO(profissionalSaude);
+                new InformacaoNaoEncontradaException(
+                        Constantes.PROFISSIONAL_SAUDE_NOT_FOUND_BY_ID_MESSAGE.replace("%s", String.valueOf(id)))
+        );
+        return ProfissionalSaude.toDTO(profissionalSaude);
     }
 
-    public ProfissionalSaude findByCRM(String nome) {
-        return profissionalSaudeRepository.findByCRM(nome).orElseThrow(() ->
-                new InformacaoNaoEncontradaException(Constantes.NOT_FOUND_MESSAGE));
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(readOnly = true)
+    public ProfissionalSaude findByCRM(String crm) {
+        return profissionalSaudeRepository.findByCRM(crm).orElseThrow(() ->
+                new InformacaoNaoEncontradaException(
+                        Constantes.PROFISSIONAL_SAUDE_NOT_FOUND_BY_CRM_MESSAGE.replace("%s", crm))
+        );
     }
 
-    private boolean verifyIfExistsByName(String nome) {
-        return profissionalSaudeRepository.existsProfissionalSaudeByNome((nome));
-    }
-
-    private boolean verifyIfExistsByCRM(String CRM) {
-        return profissionalSaudeRepository.existsProfissionalSaudeByCRM((CRM));
-    }
-
-    public ProfissionalSaudeResponseDTO save(ProfissionalSaudeRequestDTO profissionalSaudeRequestDTO) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public ProfissionalSaudeDTO save(ProfissionalSaudeRequestDTO profissionalSaudeRequestDTO) {
         this.validarParametrosObrigatorios(profissionalSaudeRequestDTO);
 
         if (verifyIfExistsByName(profissionalSaudeRequestDTO.getNome())) {
@@ -55,6 +69,18 @@ public class ProfissionalSaudeService {
 
         if (verifyIfExistsByCRM(profissionalSaudeRequestDTO.getCRM())) {
             throw new ConflitoException(Constantes.CONFLICT_MESSAGE);
+        }
+
+        var unidadeSaude = unidadeSaudeRepository.findByNome(profissionalSaudeRequestDTO.getNomeUnidadeSaude())
+                .orElseThrow(() -> new InformacaoNaoEncontradaException(
+                        Constantes.UNIDADE_SAUDE_NOT_FOUND_BY_NAME_MESSAGE
+                                .replace("%s", profissionalSaudeRequestDTO.getNomeUnidadeSaude())
+                ));
+
+        for (var profissionalSaudeUnidade : unidadeSaude.getProfissionais()) {
+            if (profissionalSaudeUnidade.getNome().equals(profissionalSaudeRequestDTO.getNome())) {
+                throw new ConflitoException(Constantes.CONFLICT_MESSAGE);
+            }
         }
 
         var enderecoProfissionalSaude = profissionalSaudeRequestDTO.getEndereco();
@@ -79,19 +105,34 @@ public class ProfissionalSaudeService {
                 LocalDateTime.now(),
                 profissionalSaudeRequestDTO.getEspecialidade(),
                 profissionalSaudeRequestDTO.getAreaAtuacao(),
-                new ArrayList<>(),
+                new LinkedHashSet<>(),
                 profissionalSaudeRequestDTO.getCRM(),
                 null,
-                null);
+                new LinkedHashSet<>());
 
+        var agenda = Agenda.builder()
+                .profissionalSaude(profissionalSaude)
+                .horariosDisponiveis(new LinkedHashSet<>())
+                .build();
+
+        profissionalSaude.setAgenda(agenda);
+        profissionalSaude.getUnidades().add(unidadeSaude);
         profissionalSaude = profissionalSaudeRepository.save(profissionalSaude);
-        return ProfissionalSaude.toResponseDTO(profissionalSaude);
+
+        unidadeSaude.getProfissionais().add(profissionalSaude);
+        unidadeSaudeRepository.save(unidadeSaude);
+
+        agendaRepository.save(agenda);
+
+        return ProfissionalSaude.toDTO(profissionalSaude);
     }
 
-    public ProfissionalSaudeResponseDTO update(Long id, ProfissionalSaudeRequestDTO profissionalSaudeRequestDTO) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public ProfissionalSaudeDTO update(Long id, ProfissionalSaudeRequestDTO profissionalSaudeRequestDTO) {
         this.validarParametrosObrigatorios(profissionalSaudeRequestDTO);
 
-        var profissionalSaude = ProfissionalSaude.toEntity(this.findById(id));
+        var profissionalSaude = ProfissionalSaude.toEntityResponse(this.findById(id));
         var enderecoProfissionalSaude = profissionalSaudeRequestDTO.getEndereco();
         var endereco = Endereco.builder()
                 .logradouro(enderecoProfissionalSaude.getLogradouro())
@@ -114,19 +155,64 @@ public class ProfissionalSaudeService {
         profissionalSaude.setCRM(profissionalSaudeRequestDTO.getCRM());
 
         profissionalSaude = profissionalSaudeRepository.save(profissionalSaude);
-        return ProfissionalSaude.toResponseDTO(profissionalSaude);
+        return ProfissionalSaude.toDTO(profissionalSaude);
     }
 
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
     public void addUnidadeSaude(String CRM, UnidadeSaude unidadeSaude) {
         var profissionalSaude = this.findByCRM(CRM);
-        profissionalSaude.setUnidadeSaude(unidadeSaude);
+        profissionalSaude.getUnidades().add(unidadeSaude);
         profissionalSaudeRepository.save(profissionalSaude);
     }
 
-    public void removeUnidadeSaude(String CRM) {
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public void removeUnidadeSaude(String CRM, UnidadeSaude unidadeSaude) {
         var profissionalSaude = this.findByCRM(CRM);
-        profissionalSaude.setUnidadeSaude(null);
+        profissionalSaude.getUnidades().remove(unidadeSaude);
         profissionalSaudeRepository.save(profissionalSaude);
+    }
+
+    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @Transactional
+    public String delete(Long id) {
+        var profissionalSaude = profissionalSaudeRepository.findById(id).orElseThrow(() ->
+                new InformacaoNaoEncontradaException(
+                        Constantes.PROFISSIONAL_SAUDE_NOT_FOUND_BY_ID_MESSAGE
+                                .replace("%s", String.valueOf(id))));
+
+        var agenda = profissionalSaude.getAgenda();
+        if (agenda != null) {
+            agenda.setProfissionalSaude(null);
+            profissionalSaude.setAgenda(null);
+        }
+
+        if (profissionalSaude.getConsultas() != null && !profissionalSaude.getConsultas().isEmpty()) {
+            for (var consulta : new LinkedHashSet<>(profissionalSaude.getConsultas())) {
+                consulta.setProfissionalSaude(null);
+            }
+            profissionalSaude.getConsultas().clear();
+        }
+
+        if (profissionalSaude.getUnidades() != null && !profissionalSaude.getUnidades().isEmpty()) {
+            for (var unidadeSaude : new LinkedHashSet<>(profissionalSaude.getUnidades())) {
+                unidadeSaude.getProfissionais().removeIf(p -> p.getId().equals(id));
+            }
+            profissionalSaude.getUnidades().clear();
+        }
+
+        profissionalSaudeRepository.delete(profissionalSaude);
+
+        return "Profissional de saúde deletado com sucesso.";
+    }
+
+    private boolean verifyIfExistsByName(String nome) {
+        return profissionalSaudeRepository.existsProfissionalSaudeByNome((nome));
+    }
+
+    private boolean verifyIfExistsByCRM(String CRM) {
+        return profissionalSaudeRepository.existsProfissionalSaudeByCRM((CRM));
     }
 
     private void validarParametrosObrigatorios(ProfissionalSaudeRequestDTO profissionalSaudeRequestDTO) {
@@ -144,6 +230,11 @@ public class ProfissionalSaudeService {
         }
         if (profissionalSaudeRequestDTO.getEmail() == null || profissionalSaudeRequestDTO.getEmail().isEmpty()) {
             throw new ParametroInvalidoException("O campo Email é obrigatório.");
+        }
+        if (profissionalSaudeRequestDTO.getNomeUnidadeSaude() == null ||
+                profissionalSaudeRequestDTO.getNomeUnidadeSaude().isEmpty() ||
+                profissionalSaudeRequestDTO.getNomeUnidadeSaude().isBlank()) {
+            throw new ParametroInvalidoException("O campo Nome da unidade de saúde é obrigatório.");
         }
         if (profissionalSaudeRequestDTO.getEndereco().getLogradouro() == null ||
                 profissionalSaudeRequestDTO.getEndereco().getLogradouro().isEmpty()) {

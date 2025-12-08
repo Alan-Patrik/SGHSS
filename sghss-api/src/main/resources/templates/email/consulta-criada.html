@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Consulta agendada</title>
+</head>
+<body style="font-family: Arial, sans-serif; color:#333; line-height: 1.5;">
+<p>Olá, <strong th:text="${nome}">Paciente</strong>!</p>
+
+<p>
+    Sua <strong>consulta</strong> foi agendada para
+    <strong th:text="${#temporals.format(dataHora, 'dd/MM/yyyy HH:mm')}">data</strong>.
+</p>
+
+<div th:if="${especialidade}">
+    <p>Especialidade: <span th:text="${especialidade}">...</span></p>
+</div>
+
+<div th:if="${local}">
+    <p>Local: <span th:text="${local}">...</span></p>
+</div>
+
+<div th:if="${observacoes}">
+    <p><em>Observações:</em> <span th:text="${observacoes}">...</span></p>
+</div>
+
+<p>Se precisar alterar, responda este e-mail ou acesse o portal.</p>
+
+<hr/>
+<small th:text="${projeto} + ' • Este é um e-mail automático'">SGHSS</small>
+</body>
+</html>

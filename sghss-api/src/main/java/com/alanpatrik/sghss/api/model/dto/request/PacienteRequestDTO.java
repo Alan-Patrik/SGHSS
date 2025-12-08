@@ -18,5 +18,5 @@ public class PacienteRequestDTO {
     private Endereco endereco;
     private String telefone;
     private String email;
-
+    private String nomeUnidadeSaude;
 }
