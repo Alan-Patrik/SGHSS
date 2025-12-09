@@ -18,7 +18,7 @@ public class RelatorioFinanceiroService {
 
     private final PagamentoRepository pagamentoRepository;
 
-    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @RequireRoles({Constantes.PRIV_GERAR_RELATORIOS})
     @Transactional
     public ArquivoExportadoDTO exportarFaturamentoMensalCsv(String inicio, String fim) {
         var dataInicio = parse(inicio);
@@ -36,7 +36,7 @@ public class RelatorioFinanceiroService {
                 "faturamento_mensal.csv", "text/csv");
     }
 
-    @RequireRoles({Constantes.LOGON_ROLE_ADMIN_SISTEMA})
+    @RequireRoles({Constantes.PRIV_GERAR_RELATORIOS})
     @Transactional
     public ArquivoExportadoDTO exportarFaturamentoMensalXlsx(String inicio, String fim) {
         var dataInicio = parse(inicio);

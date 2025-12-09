@@ -1,349 +1,181 @@
--- -- ====================================================================
--- -- Limpando objetos anteriores
--- -- ====================================================================
--- DROP TABLE IF EXISTS HORARIOS_DISPONIVEIS;
--- DROP TABLE IF EXISTS LEITO_PROFISSIONAL_SAUDE;
--- DROP TABLE IF EXISTS LEITO_PACIENTE;
--- DROP TABLE IF EXISTS USUARIO_ROLE;
--- DROP TABLE IF EXISTS EXAME;
--- DROP TABLE IF EXISTS PRESCRICAO;
--- DROP TABLE IF EXISTS PRONTUARIO;
--- DROP TABLE IF EXISTS CONSULTA;
--- DROP TABLE IF EXISTS AGENDA;
--- DROP TABLE IF EXISTS LEITO;
--- DROP TABLE IF EXISTS PROFISSIONAL_SAUDE;
--- DROP TABLE IF EXISTS PACIENTE;
--- DROP TABLE IF EXISTS UNIDADE_SAUDE;
--- DROP TABLE IF EXISTS USUARIO;
--- DROP TABLE IF EXISTS ROLE;
--- DROP TABLE IF EXISTS AUDITORIA;
---
--- -- ====================================================================
--- -- AUDITORIA
--- -- ====================================================================
--- CREATE TABLE IF NOT EXISTS AUDITORIA (
---     ID_AUDITORIA BIGINT AUTO_INCREMENT PRIMARY KEY,
---     DAT_EVENT_TIME TIMESTAMP NOT NULL,
---     TXT_USERNAME VARCHAR(100),
---     TXT_ACTION VARCHAR(150),
---     TXT_RESOURCE VARCHAR(300),
---     TXT_METHOD VARCHAR(20),
---     TXT_IP VARCHAR(64),
---     TXT_USER_AGENT VARCHAR(512),
---     TXT_DETAILS CLOB
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- Índices
--- CREATE INDEX IF NOT EXISTS idx_audit_event_time ON AUDITORIA (DAT_EVENT_TIME);
--- CREATE INDEX IF NOT EXISTS idx_audit_username ON AUDITORIA (TXT_USERNAME);
--- CREATE INDEX IF NOT EXISTS idx_audit_action ON AUDITORIA (TXT_ACTION);
--- CREATE INDEX IF NOT EXISTS idx_audit_resource ON AUDITORIA (TXT_RESOURCE);
---
---
--- -- ====================================================================
--- -- ROLE
--- -- ====================================================================
--- CREATE TABLE ROLE
--- (
---     ID_ROLE       BIGINT       NOT NULL AUTO_INCREMENT,
---     TXT_AUTHORITY VARCHAR(150) NOT NULL,
---     PRIMARY KEY (ID_ROLE),
---     UNIQUE KEY UQ_ROLE_AUTHORITY (TXT_AUTHORITY)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- USUARIO
--- -- ====================================================================
--- CREATE TABLE USUARIO
--- (
---     ID_USUARIO   BIGINT       NOT NULL AUTO_INCREMENT,
---     TXT_USERNAME VARCHAR(150) NOT NULL,
---     TXT_PASSWORD VARCHAR(255) NOT NULL,
---     PRIMARY KEY (ID_USUARIO),
---     UNIQUE KEY UQ_USUARIO_USERNAME (TXT_USERNAME),
---     KEY          IX_USUARIO_USERNAME (TXT_USERNAME)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- USUARIO_ROLE (ManyToMany USUARIO x ROLE)
--- -- ====================================================================
--- CREATE TABLE USUARIO_ROLE
--- (
---     usuario BIGINT NOT NULL,
---     role    BIGINT NOT NULL,
---     PRIMARY KEY (usuario, role),
---     KEY     IX_USUARIO_ROLE_USUARIO (usuario),
---     KEY     IX_USUARIO_ROLE_ROLE (role),
---     CONSTRAINT FK_USUARIO_ROLE_USUARIO
---         FOREIGN KEY (usuario) REFERENCES USUARIO (ID_USUARIO)
---             ON UPDATE CASCADE ON DELETE CASCADE,
---     CONSTRAINT FK_USUARIO_ROLE_ROLE
---         FOREIGN KEY (role) REFERENCES ROLE (ID_ROLE)
---             ON UPDATE CASCADE ON DELETE CASCADE
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- UNIDADE_SAUDE
--- -- ====================================================================
--- CREATE TABLE UNIDADE_SAUDE
--- (
---     ID_INIDADE_SAUDE BIGINT       NOT NULL AUTO_INCREMENT,
---     TXT_NOME         VARCHAR(255) NOT NULL,
---     -- Endereco (Embeddable) incorporado
---     TXT_LOGRADOURO   VARCHAR(255) NOT NULL,
---     NUM_NUMERO       VARCHAR(50)  NOT NULL,
---     TXT_COMPLEMENTO  VARCHAR(255) NULL,
---     TXT_BAIRRO       VARCHAR(255) NOT NULL,
---     TXT_CIDADE       VARCHAR(255) NOT NULL,
---     TXT_ESTADO       VARCHAR(100) NOT NULL,
---     NUM_CEP          VARCHAR(20)  NOT NULL,
---     PRIMARY KEY (ID_INIDADE_SAUDE),
---     KEY              IX_UNID_SAUDE_NOME (TXT_NOME),
---     KEY              IX_UNID_SAUDE_CIDADE_ESTADO (TXT_CIDADE, TXT_ESTADO),
---     KEY              IX_UNID_SAUDE_CEP (NUM_CEP)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- PACIENTE
--- -- ====================================================================
--- CREATE TABLE PACIENTE
--- (
---     ID_PACIENTE      BIGINT       NOT NULL AUTO_INCREMENT,
---     -- Campos de Pessoa
---     TXT_NOME         VARCHAR(255) NOT NULL,
---     NUM_CPF          VARCHAR(20)  NOT NULL,
---     DATA_NASCIMENTO  VARCHAR(50)  NOT NULL,
---     NUM_TELEFONE     VARCHAR(50)  NOT NULL,
---     TXT_EMAIL        VARCHAR(150) NOT NULL,
---     -- Endereco embutido
---     TXT_LOGRADOURO   VARCHAR(255) NOT NULL,
---     NUM_NUMERO       VARCHAR(50)  NOT NULL,
---     TXT_COMPLEMENTO  VARCHAR(255) NULL,
---     TXT_BAIRRO       VARCHAR(255) NOT NULL,
---     TXT_CIDADE       VARCHAR(255) NOT NULL,
---     TXT_ESTADO       VARCHAR(100) NOT NULL,
---     NUM_CEP          VARCHAR(20)  NOT NULL,
---     -- Auditoria
---     DATA_CRIACAO     DATETIME     NOT NULL,
---     DATA_MODIFICACAO DATETIME     NOT NULL,
---     PRIMARY KEY (ID_PACIENTE),
---     KEY              IX_PACIENTE_NOME (TXT_NOME),
---     KEY              IX_PACIENTE_EMAIL (TXT_EMAIL),
---     KEY              IX_PACIENTE_CIDADE_ESTADO (TXT_CIDADE, TXT_ESTADO),
---     KEY              IX_PACIENTE_CEP (NUM_CEP)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- PROFISSIONAL_SAUDE
--- -- ====================================================================
--- CREATE TABLE PROFISSIONAL_SAUDE
--- (
---     ID_PROFISSIONAL_SAUDE  BIGINT       NOT NULL AUTO_INCREMENT,
---     -- Campos de Pessoa
---     TXT_NOME               VARCHAR(255) NOT NULL,
---     NUM_CPF                VARCHAR(20)  NOT NULL,
---     DATA_NASCIMENTO        VARCHAR(50)  NOT NULL,
---     NUM_TELEFONE           VARCHAR(50)  NOT NULL,
---     TXT_EMAIL              VARCHAR(150) NOT NULL,
---     -- Endereco embutido
---     TXT_LOGRADOURO         VARCHAR(255) NOT NULL,
---     NUM_NUMERO             VARCHAR(50)  NOT NULL,
---     TXT_COMPLEMENTO        VARCHAR(255) NULL,
---     TXT_BAIRRO             VARCHAR(255) NOT NULL,
---     TXT_CIDADE             VARCHAR(255) NOT NULL,
---     TXT_ESTADO             VARCHAR(100) NOT NULL,
---     NUM_CEP                VARCHAR(20)  NOT NULL,
---     -- Auditoria
---     DATA_CRIACAO           DATETIME     NOT NULL,
---     DATA_MODIFICACAO       DATETIME     NOT NULL,
---     -- Campos próprios
---     INDI_TXT_ESPECIALIDADE VARCHAR(50)  NOT NULL,
---     AREA_ATUACAO           INT          NOT NULL,
---     TXT_CRM                VARCHAR(50)  NOT NULL,
---     -- Relação com UnidadeSaude (gerada pelo JPA como unidade_saude_id)
---     unidade_saude_id       BIGINT NULL,
---     PRIMARY KEY (ID_PROFISSIONAL_SAUDE),
---     UNIQUE KEY UQ_PROFISSIONAL_CRM (TXT_CRM),
---     KEY                    IX_PROFISSIONAL_NOME (TXT_NOME),
---     KEY                    IX_PROFISSIONAL_EMAIL (TXT_EMAIL),
---     KEY                    IX_PROFISSIONAL_CIDADE_ESTADO (TXT_CIDADE, TXT_ESTADO),
---     KEY                    IX_PROFISSIONAL_CEP (NUM_CEP),
---     KEY                    IX_PROFISSIONAL_ESPECIALIDADE (INDI_TXT_ESPECIALIDADE),
---     KEY                    IX_PROFISSIONAL_AREA_ATUACAO (AREA_ATUACAO),
---     KEY                    IX_PROFISSIONAL_UNIDADE (unidade_saude_id),
---     CONSTRAINT FK_PROFISSIONAL_UNIDADE
---         FOREIGN KEY (unidade_saude_id) REFERENCES UNIDADE_SAUDE (ID_INIDADE_SAUDE)
---             ON UPDATE CASCADE ON DELETE SET NULL
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- AGENDA
--- -- ====================================================================
--- CREATE TABLE AGENDA
--- (
---     ID_AGENDA             BIGINT NOT NULL AUTO_INCREMENT,
---     profissional_saude_id BIGINT NULL,
---     PRIMARY KEY (ID_AGENDA),
---     KEY                   IX_AGENDA_PROFISSIONAL (profissional_saude_id),
---     CONSTRAINT FK_AGENDA_PROF_SAUDE
---         FOREIGN KEY (profissional_saude_id) REFERENCES PROFISSIONAL_SAUDE (ID_PROFISSIONAL_SAUDE)
---             ON UPDATE CASCADE ON DELETE SET NULL
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- LEITO
--- -- ====================================================================
--- CREATE TABLE LEITO
--- (
---     ID_LEITO         BIGINT       NOT NULL AUTO_INCREMENT,
---     TXT_NUMERO       VARCHAR(255) NOT NULL,
---     unidade_saude_id BIGINT NULL,
---     PRIMARY KEY (ID_LEITO),
---     KEY              IX_LEITO_NUMERO (TXT_NUMERO),
---     KEY              IX_LEITO_UNIDADE (unidade_saude_id),
---     CONSTRAINT FK_LEITO_UNIDADE
---         FOREIGN KEY (unidade_saude_id) REFERENCES UNIDADE_SAUDE (ID_INIDADE_SAUDE)
---             ON UPDATE CASCADE ON DELETE SET NULL
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- LEITO_PACIENTE
--- -- ====================================================================
--- CREATE TABLE LEITO_PACIENTE
--- (
---     ID_LEITO    BIGINT NOT NULL,
---     ID_PACIENTE BIGINT NOT NULL,
---     PRIMARY KEY (ID_LEITO, ID_PACIENTE),
---     KEY         IX_LEITO_PACIENTE_PAC (ID_PACIENTE),
---     CONSTRAINT FK_LEITO_PACIENTE_LEITO
---         FOREIGN KEY (ID_LEITO) REFERENCES LEITO (ID_LEITO)
---             ON UPDATE CASCADE ON DELETE CASCADE,
---     CONSTRAINT FK_LEITO_PACIENTE_PACIENTE
---         FOREIGN KEY (ID_PACIENTE) REFERENCES PACIENTE (ID_PACIENTE)
---             ON UPDATE CASCADE ON DELETE CASCADE
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- LEITO_PROFISSIONAL_SAUDE
--- -- ====================================================================
--- CREATE TABLE LEITO_PROFISSIONAL_SAUDE
--- (
---     ID_LEITO              BIGINT NOT NULL,
---     ID_PROFISSIONAL_SAUDE BIGINT NOT NULL,
---     PRIMARY KEY (ID_LEITO, ID_PROFISSIONAL_SAUDE),
---     KEY                   IX_LEITO_PROF_SAUDE_PROF (ID_PROFISSIONAL_SAUDE),
---     CONSTRAINT FK_LEITO_PROF_SAUDE_LEITO
---         FOREIGN KEY (ID_LEITO) REFERENCES LEITO (ID_LEITO)
---             ON UPDATE CASCADE ON DELETE CASCADE,
---     CONSTRAINT FK_LEITO_PROF_SAUDE_PROF
---         FOREIGN KEY (ID_PROFISSIONAL_SAUDE) REFERENCES PROFISSIONAL_SAUDE (ID_PROFISSIONAL_SAUDE)
---             ON UPDATE CASCADE ON DELETE CASCADE
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- CONSULTA
--- -- ====================================================================
--- CREATE TABLE CONSULTA
--- (
---     ID_CONSULTA              BIGINT      NOT NULL AUTO_INCREMENT,
---     DATA_HORA_CONSULTA       DATETIME    NOT NULL,
---     AREA_ATUACAO             INT         NOT NULL,
---     INDI_TXT_TIPO_CONSULTA   VARCHAR(50) NOT NULL,
---     INDI_TXT_STATUS_CONSULTA VARCHAR(50) NOT NULL,
---     ID_PACIENTE              BIGINT NULL,
---     ID_PROFISSIONAL_SAUDE    BIGINT NULL,
---     PRIMARY KEY (ID_CONSULTA),
---     KEY                      IX_CONSULTA_DATA (DATA_HORA_CONSULTA),
---     KEY                      IX_CONSULTA_PACIENTE (ID_PACIENTE),
---     KEY                      IX_CONSULTA_PROFISSIONAL (ID_PROFISSIONAL_SAUDE),
---     KEY                      IX_CONSULTA_STATUS (INDI_TXT_STATUS_CONSULTA),
---     KEY                      IX_CONSULTA_TIPO (INDI_TXT_TIPO_CONSULTA),
---     CONSTRAINT FK_CONSULTA_PACIENTE
---         FOREIGN KEY (ID_PACIENTE) REFERENCES PACIENTE (ID_PACIENTE)
---             ON UPDATE CASCADE ON DELETE SET NULL,
---     CONSTRAINT FK_CONSULTA_PROF_SAUDE
---         FOREIGN KEY (ID_PROFISSIONAL_SAUDE) REFERENCES PROFISSIONAL_SAUDE (ID_PROFISSIONAL_SAUDE)
---             ON UPDATE CASCADE ON DELETE SET NULL
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- PRONTUARIO
--- -- ====================================================================
--- CREATE TABLE PRONTUARIO
--- (
---     ID_PRONTUARIO    BIGINT   NOT NULL AUTO_INCREMENT,
---     TXT_OBSERVACAO   VARCHAR(255) NULL,
---     DATA_CRIACAO     DATETIME NOT NULL,
---     DATA_MODIFICACAO DATETIME NOT NULL,
---     ID_PACIENTE      BIGINT   NOT NULL,
---     PRIMARY KEY (ID_PRONTUARIO),
---     UNIQUE KEY UQ_PRONTUARIO_PACIENTE (ID_PACIENTE),
---     KEY              IX_PRONTUARIO_DATA_CRIACAO (DATA_CRIACAO),
---     KEY              IX_PRONTUARIO_DATA_MODIFICACAO (DATA_MODIFICACAO),
---     CONSTRAINT FK_PRONTUARIO_PACIENTE
---         FOREIGN KEY (ID_PACIENTE) REFERENCES PACIENTE (ID_PACIENTE)
---             ON UPDATE CASCADE ON DELETE CASCADE
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- PRESCRICAO
--- -- ====================================================================
--- CREATE TABLE PRESCRICAO
--- (
---     ID_PRESCRICAO         BIGINT       NOT NULL AUTO_INCREMENT,
---     TXT_NOME_MEDICAMENTO  VARCHAR(255) NOT NULL,
---     TXT_OBSERVACAO        VARCHAR(255) NULL,
---     TXT_DOSAGEM           VARCHAR(255) NOT NULL,
---     TXT_DURACAO_MEDICACAO VARCHAR(255) NOT NULL,
---     ID_PRONTUARIO         BIGINT NULL,
---     PRIMARY KEY (ID_PRESCRICAO),
---     KEY                   IX_PRESCRICAO_PRONTUARIO (ID_PRONTUARIO),
---     KEY                   IX_PRESCRICAO_MEDICAMENTO (TXT_NOME_MEDICAMENTO),
---     CONSTRAINT FK_PRESCRICAO_PRONTUARIO
---         FOREIGN KEY (ID_PRONTUARIO) REFERENCES PRONTUARIO (ID_PRONTUARIO)
---             ON UPDATE CASCADE ON DELETE SET NULL
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- EXAME
--- -- ====================================================================
--- CREATE TABLE EXAME
--- (
---     ID_EXAME              BIGINT       NOT NULL AUTO_INCREMENT,
---     TXT_OBSERVACAO        VARCHAR(255) NOT NULL,
---     TXT_TIPO_EXAME        VARCHAR(50)  NOT NULL,
---     TXT_TIPO_CONSULTA     VARCHAR(50)  NOT NULL,
---     DATA_HORA_REALIZACAO  DATETIME     NOT NULL,
---     ID_PACIENTE           BIGINT NULL,
---     ID_PROFISSIONAL_SAUDE BIGINT NULL,
---     ID_UNIDADE_SERVIÇO    BIGINT NULL,
---     PRIMARY KEY (ID_EXAME),
---     KEY                   IX_EXAME_DATA (DATA_HORA_REALIZACAO),
---     KEY                   IX_EXAME_PACIENTE (ID_PACIENTE),
---     KEY                   IX_EXAME_PROFISSIONAL (ID_PROFISSIONAL_SAUDE),
---     KEY                   IX_EXAME_UNIDADE (ID_UNIDADE_SERVIÇO),
---     KEY                   IX_EXAME_TIPO_EXAME (TXT_TIPO_EXAME),
---     KEY                   IX_EXAME_TIPO_CONSULTA (TXT_TIPO_CONSULTA),
---     CONSTRAINT FK_EXAME_PACIENTE
---         FOREIGN KEY (ID_PACIENTE) REFERENCES PACIENTE (ID_PACIENTE)
---             ON UPDATE CASCADE ON DELETE SET NULL,
---     CONSTRAINT FK_EXAME_PROF_SAUDE
---         FOREIGN KEY (ID_PROFISSIONAL_SAUDE) REFERENCES PROFISSIONAL_SAUDE (ID_PROFISSIONAL_SAUDE)
---             ON UPDATE CASCADE ON DELETE SET NULL,
---     CONSTRAINT FK_EXAME_UNIDADE
---         FOREIGN KEY (ID_UNIDADE_SERVIÇO) REFERENCES UNIDADE_SAUDE (ID_INIDADE_SAUDE)
---             ON UPDATE CASCADE ON DELETE SET NULL
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
---
--- -- ====================================================================
--- -- HORARIOS_DISPONIVEIS
--- -- ====================================================================
--- CREATE TABLE HORARIOS_DISPONIVEIS
--- (
---     AGENDA_ID BIGINT       NOT NULL,
---     HORARIO   VARCHAR(255) NOT NULL,
---     PRIMARY KEY (AGENDA_ID, HORARIO),
---     CONSTRAINT FK_HOR_DISP_AGENDA
---         FOREIGN KEY (AGENDA_ID) REFERENCES AGENDA (ID_AGENDA)
---             ON DELETE CASCADE ON UPDATE CASCADE
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- =============================================================================
+-- SGHSS - DDL MySQL 8
+-- =============================================================================
+CREATE DATABASE IF NOT EXISTS sghss
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_0900_ai_ci
+;
+
+USE sghss;
+
+
+-- =============================================================================
+-- ROLE
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS role (
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome         ENUM('ADMIN','PROFISSIONAL','PACIENTE') NOT NULL,
+    descricao    VARCHAR(120) NULL,
+    UNIQUE KEY uk_role_nome (nome)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+;
+
+
+-- =============================================================================
+-- USUARIO
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS usuario (
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome          VARCHAR(120) NOT NULL,
+    email         VARCHAR(180) NOT NULL,
+    senha_hash    VARCHAR(255) NOT NULL,
+    ativo         TINYINT(1) NOT NULL DEFAULT 1,
+    criado_em     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_usuario_email (email),
+    INDEX ix_usuario_ativo (ativo)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+;
+
+
+-- =============================================================================
+-- USUARIO_ROLE
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS usuario_role (
+    usuario_id BIGINT NOT NULL,
+    role_id    BIGINT NOT NULL,
+    atribuido_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (usuario_id, role_id),
+    CONSTRAINT fk_ur_usuario
+    FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_ur_role
+    FOREIGN KEY (role_id) REFERENCES role(id)
+    ON UPDATE CASCADE ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+;
+
+
+-- =============================================================================
+-- UNIDADE_SAUDE
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS Unidade_Saude (
+    id        BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome      VARCHAR(150) NOT NULL,
+    endereco  VARCHAR(255) NOT NULL,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_unidade_nome (nome)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+;
+
+
+-- =============================================================================
+-- PACIENTE
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS Paciente (
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome             VARCHAR(150) NOT NULL,
+    cpf              CHAR(11)     NOT NULL,
+    data_nascimento  DATE         NOT NULL,
+    telefone         VARCHAR(20)  NULL,
+    email            VARCHAR(180) NULL,
+    criado_em        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_paciente_cpf (cpf),
+    INDEX ix_paciente_nome (nome),
+    INDEX ix_paciente_email (email)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+;
+
+
+-- =============================================================================
+-- PROFISSIONAL
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS Profissional (
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome         VARCHAR(150) NOT NULL,
+    registro     VARCHAR(30)  NOT NULL,
+    especialidade VARCHAR(80) NOT NULL,
+    unidade_id   BIGINT       NOT NULL,
+    ativo        TINYINT(1)   NOT NULL DEFAULT 1,
+    criado_em    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_prof_registro (registro),
+    INDEX ix_prof_nome (nome),
+    INDEX ix_prof_unidade (unidade_id),
+    CONSTRAINT fk_prof_unidade
+    FOREIGN KEY (unidade_id) REFERENCES unidade(id)
+                                                                 ON UPDATE CASCADE ON DELETE RESTRICT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+;
+
+
+-- =============================================================================
+-- LEITO
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS Leito (
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    codigo       VARCHAR(20) NOT NULL,
+    tipo         VARCHAR(40) NOT NULL,
+    status       ENUM('LIVRE','OCUPADO','MANUTENCAO') NOT NULL DEFAULT 'LIVRE',
+    unidade_id   BIGINT NOT NULL,
+    paciente_id  BIGINT NULL,
+    criado_em    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_leito_codigo (codigo),
+    INDEX ix_leito_unidade (unidade_id),
+    INDEX ix_leito_paciente (paciente_id),
+    CONSTRAINT fk_leito_unidade
+    FOREIGN KEY (unidade_id) REFERENCES unidade(id)
+                                                              ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_leito_paciente
+    FOREIGN KEY (paciente_id) REFERENCES paciente(id)
+                                                              ON UPDATE CASCADE ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+;
+
+
+-- =============================================================================
+-- CONSULTA
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS Consulta (
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+    data_hora        DATETIME     NOT NULL,
+    status           ENUM('AGENDADA','REALIZADA','CANCELADA') NOT NULL DEFAULT 'AGENDADA',
+    observacoes      TEXT         NULL,
+    paciente_id      BIGINT       NOT NULL,
+    profissional_id  BIGINT       NOT NULL,
+    criado_em        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX ix_consulta_datahora (data_hora),
+    INDEX ix_consulta_paciente (paciente_id),
+    INDEX ix_consulta_profissional (profissional_id),
+    CONSTRAINT fk_consulta_paciente
+    FOREIGN KEY (paciente_id) REFERENCES paciente(id)
+                                                                     ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_consulta_profissional
+    FOREIGN KEY (profissional_id) REFERENCES profissional(id)
+                                                                     ON UPDATE CASCADE ON DELETE RESTRICT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+;
+
+CREATE UNIQUE INDEX ux_consulta_prof_datahora
+    ON consulta (profissional_id, data_hora)
+;
+
+
+-- =============================================================================
+-- AUDITORIA
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS Auditoria (
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    data_hora      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuario_email  VARCHAR(180) NOT NULL,
+    acao           VARCHAR(120) NOT NULL,
+    ip             VARCHAR(45)  NULL,
+    detalhes       JSON         NULL,
+    INDEX ix_log_data (data_hora),
+    INDEX ix_log_usuario (usuario_email)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+;
+
